@@ -1,0 +1,5 @@
+services:
+  api-gateway:
+    image: api-gateway
+    ports:
+      - "8080:8080"

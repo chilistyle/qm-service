@@ -1,0 +1,97 @@
+app:
+  cors:
+    allowed-origins: ${ALLOWED_ORIGINS}
+
+server:
+  port: 8080
+  netty:
+    connection-timeout: 3s
+    idle-timeout: 60s
+    max-keep-alive-requests: 1000
+  http2:
+    enabled: true
+
+spring:
+  main:
+    web-application-type: reactive
+  application:
+    name: api-gateway
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          realm-client-id: ${REALM_CLIENT_ID}
+          jwk-set-uri: ${JWK_SET_URI}
+          issuer-uri: ${ISSUER_URI}
+  codec:
+    max-in-memory-size: 256KB
+  cloud:
+    gateway:
+      server:
+        webflux:
+          httpclient:
+            connect-timeout: 1000
+            response-timeout: 10s
+            pool:
+              max-connections: 2000
+              acquire-timeout: 5000
+              max-idle-time: 30s
+              max-life-time: 60s
+            compression: true
+          default-filters:
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
+                methods: GET, HEAD
+                backoff:
+                  firstBackoff: 100ms
+                  maxBackoff: 500ms
+            - name: CircuitBreaker
+              args:
+                name: defaultCB
+                fallbackUri: forward:/fallback
+            - RemoveRequestHeader=Cookie
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      defaultCB:
+        slidingWindowSize: 50
+        slidingWindowType: COUNT_BASED
+        failureRateThreshold: 50
+        slowCallRateThreshold: 80
+        slowCallDurationThreshold: 3s
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 10
+        minimumNumberOfCalls: 20
+  timelimiter:
+    instances:
+      defaultCB:
+        timeoutDuration: 10s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, prometheus, gateway, circuitbreakers
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{X-Correlation-Id:-}]"
+  level:
+    qm.service: DEBUG
+    root: WARN
+    org.springframework.cloud.gateway: INFO
+    io.github.resilience4j: INFO
