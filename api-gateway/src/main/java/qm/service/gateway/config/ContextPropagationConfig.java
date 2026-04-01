@@ -1,4 +1,4 @@
-package qm.service.config;
+package qm.service.gateway.config;
 
 import io.micrometer.context.ContextRegistry;
 import jakarta.annotation.PostConstruct;

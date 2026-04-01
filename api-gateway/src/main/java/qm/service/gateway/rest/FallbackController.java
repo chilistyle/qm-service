@@ -1,4 +1,4 @@
-package qm.service.rest;
+package qm.service.gateway.rest;
 
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpStatus;
@@ -18,6 +18,7 @@ import java.util.concurrent.TimeoutException;
  */
 @RestController
 public class FallbackController {
+
     @RequestMapping("/fallback")
     public Mono<ResponseEntity<Map<String, Object>>> fallback(ServerWebExchange exchange) {
 

@@ -1,4 +1,4 @@
-package qm.service.config;
+package qm.service.gateway.config;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
-import qm.service.util.ResponseWriter;
+import qm.service.gateway.util.ResponseWriter;
 import reactor.test.StepVerifier;
 
 import java.time.Instant;

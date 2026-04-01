@@ -12,6 +12,14 @@ server:
     enabled: true
 
 spring:
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      username: ${REDIS_USERNAME}
+      password: ${REDIS_PASSWORD}
+      connect-timeout: 2s
+      timeout: 1s
   main:
     web-application-type: reactive
   application:

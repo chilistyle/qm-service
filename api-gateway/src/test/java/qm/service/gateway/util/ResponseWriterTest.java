@@ -1,4 +1,4 @@
-package qm.service.util;
+package qm.service.gateway.util;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

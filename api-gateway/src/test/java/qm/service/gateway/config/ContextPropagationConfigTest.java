@@ -1,4 +1,4 @@
-package qm.service.config;
+package qm.service.gateway.config;
 
 import io.micrometer.context.ContextSnapshot;
 import org.junit.jupiter.api.AfterEach;

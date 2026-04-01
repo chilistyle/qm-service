@@ -1,4 +1,4 @@
-package qm.service.util;
+package qm.service.gateway.util;
 
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;

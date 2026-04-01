@@ -1,4 +1,4 @@
-package qm.service.config;
+package qm.service.gateway.config;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;

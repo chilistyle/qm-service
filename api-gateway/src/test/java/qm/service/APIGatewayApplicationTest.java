@@ -3,6 +3,7 @@ package qm.service;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.boot.SpringApplication;
+import qm.service.gateway.APIGatewayApplication;
 import reactor.core.publisher.Hooks;
 
 import static org.mockito.ArgumentMatchers.any;

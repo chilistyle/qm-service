@@ -1,4 +1,4 @@
-package qm.service.filter;
+package qm.service.gateway.filter;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

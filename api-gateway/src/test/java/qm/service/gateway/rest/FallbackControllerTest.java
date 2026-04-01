@@ -1,4 +1,4 @@
-package qm.service.rest;
+package qm.service.gateway.rest;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

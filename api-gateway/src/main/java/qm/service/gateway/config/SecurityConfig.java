@@ -1,4 +1,4 @@
-package qm.service.config;
+package qm.service.gateway.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,7 @@ import org.springframework.security.web.server.context.NoOpServerSecurityContext
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-import qm.service.util.ResponseWriter;
+import qm.service.gateway.util.ResponseWriter;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
@@ -93,7 +93,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Correlation-Id", "X-Requested-With", "Accept"));
-        configuration.setExposedHeaders(List.of("X-Correlation-Id"));
+        configuration.setExposedHeaders(List.of("X-Correlation-Id", "X-User-Id", "X-User-Roles"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
