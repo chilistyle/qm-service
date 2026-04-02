@@ -28,7 +28,7 @@ import java.util.Map;
  * SecurityConfigTest -
  */
 @SpringBootTest
-@TestPropertySource(locations = "file:.env.example")
+@TestPropertySource(locations = "file:../.env.example")
 class SecurityConfigTest {
     @Value("${REALM_CLIENT_ID}")
     private String realmClientId;

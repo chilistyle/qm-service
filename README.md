@@ -1,77 +1,120 @@
 # 🚀 qm-service
 
-A modern **microservices-based architecture** built with Spring technologies, focusing on scalability, resilience, and security.
+Enterprise-grade **microservices platform** built with Spring ecosystem, focused on scalability, resilience, and observability.
 
 ---
 
 ## 📦 Overview
 
-`qm-service` is a microservices ecosystem designed for high-performance distributed systems.  
-It uses **Spring WebFlux** for reactive programming and integrates essential production-grade features like security, rate limiting, and fault tolerance.
+`qm-service` is a distributed system designed for high-load environments.  
+It combines **reactive and blocking architectures**, integrates centralized security, and provides production-ready infrastructure.
 
 ---
 
 ## 🧩 Architecture
 
 ### 🔹 API Gateway (`api-gateway`)
+Central entry point for all client requests.
 
-The central entry point for all client requests.
+**Tech:**
+- Spring WebFlux
+- Spring Cloud Gateway
 
-Built with:
-- **Spring WebFlux** (Reactive stack)
+**Responsibilities:**
+- Routing requests
+- Authentication & authorization
+- Rate limiting
+- Correlation ID propagation
+
+---
+
+### 🔹 Book Service (`book-service`)
+Domain service responsible for managing books.
+
+**Tech:**
+- Spring MVC
+- Virtual Threads (Project Loom)
+- Flyway
+
+**Capabilities:**
+- REST API: `/api/v1/books`
+- Role-based access validation (via Gateway headers)
+- Correlation ID logging
+- Database migrations with Flyway
 
 ---
 
 ## ✨ Key Features
 
-### ⚡ Reactive API Gateway
-- Non-blocking request handling using **Spring WebFlux**
-- Optimized for high throughput and low latency
+### ⚡ Performance
+- Reactive Gateway (WebFlux)
+- Virtual Threads for efficient concurrency
 
 ### 🔒 Security
-- **OAuth2 authentication** with Keycloak
-- **JWT-based authorization**
-- Stateless session management
+- OAuth2 with Keycloak
+- JWT-based authentication
+- Stateless services
 
 ### 🚦 Rate Limiting
-- Global rate limiter implemented using **Redis**
-- Protects services from abuse and overload
+- Redis-backed rate limiter
 
-### 🔁 Resilience & Fault Tolerance
-- **Circuit Breaker** for handling failed services
-- Automatic **retry mechanism** for idempotent requests
-- Built-in **fallback strategies**
+### 🔁 Resilience
+- Circuit Breaker (Resilience4j)
+- Retry mechanisms
+- Fallback strategies
 
-### 🔍 Observability & Tracing
-- Propagation of:
-    - **User data**
-    - **Correlation ID**
-- Enables full request tracking across microservices
-
-### 🧠 Smart Request Handling
-- Retry logic applied only to **idempotent requests**
-- Prevents unintended side effects
+### 🔍 Observability
+- Correlation ID propagation
+- Structured logging
+- Request tracing across services
 
 ---
 
 ## 🏗️ Tech Stack
 
-- **Java 25**
-- **Spring Boot 4.0.5**
-- **Spring WebFlux**
-- **Spring Cloud Gateway 5.0.1**
-- **Keycloak**
-- **Redis**
-- **JWT**
-- **Resilience4j** (Circuit Breaker)
+- Java 25
+- Spring Boot 4
+- Spring WebFlux / Spring MVC
+- Spring Cloud Gateway
+- Keycloak
+- Redis
+- PostgreSQL
+- Flyway
+- Docker
+
+---
+
+## 🐳 Local Development Environment
+
+Fully automated local setup using Docker.
+
+### Services:
+- PostgreSQL
+- Redis
+- Keycloak
+- API Gateway
+- Book Service
+
+### Run:
+
+```bash
+make local
+```
+
+### Requirements:
+- Docker
+- Make
+- Maven
 
 ---
 
 ## 🔐 Authentication Flow
-1. Client authenticates via Keycloak
+
+1. User authenticates via Keycloak
 2. Receives JWT token
-3. Sends requests with token to API Gateway
-4. Gateway validates and forwards request to services
+3. Sends request to API Gateway
+4. Gateway validates token
+5. Request forwarded with headers (including roles & correlationId)
 
 ---
 

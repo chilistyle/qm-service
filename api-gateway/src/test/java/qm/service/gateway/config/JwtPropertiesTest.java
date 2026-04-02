@@ -16,7 +16,7 @@ import java.util.Set;
  * JwtPropertiesTest -
  */
 @SpringBootTest
-@TestPropertySource(locations = "file:.env.example")
+@TestPropertySource(locations = "file:../.env.example")
 class JwtPropertiesTest {
 
     @Autowired

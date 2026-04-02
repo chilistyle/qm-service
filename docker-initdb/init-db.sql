@@ -1,0 +1,2 @@
+CREATE DATABASE book_db;
+CREATE DATABASE keycloak_db;

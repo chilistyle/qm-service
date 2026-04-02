@@ -20,7 +20,7 @@ import java.util.concurrent.TimeoutException;
  * FallbackControllerTest -
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(locations = "file:.env.example")
+@TestPropertySource(locations = "file:../.env.example")
 class FallbackControllerTest {
 
     @LocalServerPort

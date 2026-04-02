@@ -1,6 +1,0 @@
-services:
-  api-gateway:
-    env_file:
-      - .env.docker
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker

@@ -33,7 +33,7 @@ jobs:
 
       - name: Run Build with Env File
         run: |
-          export $(grep -v '^#' .env.ci-test | xargs)
+          export $(grep -v '^#' .env.example | xargs)
           chmod +x mvnw
           ./mvnw clean verify -B
 
