@@ -1,0 +1,28 @@
+server:
+  port: 8761
+  tomcat:
+    max-threads: 200
+    max-connections: 10000
+
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+  instance:
+    hostname: ${EUREKA_HOSTNAME}
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+  server:
+    enable-self-preservation: true
+    renewal-percent-threshold: 0.85
+    eviction-interval-timer-in-ms: 60000
+    wait-time-in-ms-when-sync-empty: 0
+
+spring:
+  application:
+    name: eureka-server
+
+logging:
+  level:
+    com.netflix.eureka: INFO
+    com.netflix.discovery: INFO

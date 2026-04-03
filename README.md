@@ -28,6 +28,21 @@ Central entry point for all client requests.
 
 ---
 
+### 🔹 Eureka Server (`eureka-server`)
+Service discovery server for dynamic microservice registration and lookup.
+
+**Tech:**
+
+- Spring Cloud Netflix Eureka
+
+**Responsibilities:**
+
+- Service registration & discovery
+- Health monitoring of services
+- Dynamic routing support for Gateway
+
+---
+
 ### 🔹 Book Service (`book-service`)
 Domain service responsible for managing books.
 
@@ -68,6 +83,11 @@ Domain service responsible for managing books.
 - Structured logging
 - Request tracing across services
 
+### 🧭 Service Discovery
+- Centralized registry via Eureka Server
+- Dynamic routing in API Gateway
+- Supports horizontal scaling of services
+
 ---
 
 ## 🏗️ Tech Stack
@@ -92,6 +112,7 @@ Fully automated local setup using Docker.
 - PostgreSQL
 - Redis
 - Keycloak
+- Eureka Server
 - API Gateway
 - Book Service
 

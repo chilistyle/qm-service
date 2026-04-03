@@ -9,8 +9,8 @@ spring:
       enabled: true
   datasource:
     url: jdbc:postgresql://${POSTGRES_DB_HOST}:${POSTGRES_DB_PORT}/${BOOK_DB_NAME}
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
+    username: ${BOOK_DB_USER}
+    password: ${BOOK_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -37,6 +37,15 @@ spring:
       prepStmtCacheSize: 250
       prepStmtCacheSqlLimit: 2048
       reWriteBatchedInserts: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_HOST}/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
 
 logging:
   pattern:

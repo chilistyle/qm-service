@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-echo "Starting targeted restore to keycloak_db..."
+echo "Starting targeted restore to postgres..."
 
-zcat /tmp/backups/keycloak-init.sql.gz | psql -U "$POSTGRES_USER" -d keycloak_db
+zcat /tmp/backups/02-keycloak-init.sql.gz | psql -U "$POSTGRES_USER" -d postgres
 
 echo "Targeted restore finished!"

@@ -8,7 +8,7 @@ services:
       resources:
         limits:
           cpus: '0.25'
-          memory: 256M
+          memory: 128M
     restart: always
     environment:
       POSTGRES_USER: user
@@ -17,12 +17,12 @@ services:
     ports:
       - "5432:5432"
     volumes:
+      - ./docker-initdb/restore.sh:/docker-entrypoint-initdb.d/01-restore.sh
+      - ./docker-initdb/keycloak-init.sql.gz:/tmp/backups/02-keycloak-init.sql.gz
+      - ./docker-initdb/init-db.sql:/docker-entrypoint-initdb.d/03-init.sql
       - pgdata:/var/lib/postgresql/data
-      - ./docker-initdb/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql
-      - ./docker-initdb/restore.sh:/docker-entrypoint-initdb.d/02-restore.sh
-      - ./docker-initdb/keycloak-init.sql.gz:/tmp/backups/keycloak-init.sql.gz
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U user -d keycloak_db" ]
+      test: [ "CMD-SHELL", "pg_isready -U user -d book_db" ]
       interval: 10s
       timeout: 5s
       retries: 50
@@ -41,7 +41,7 @@ services:
     command: start-dev
     environment:
       - KC_DB=postgres
-      - KC_DB_URL=jdbc:postgresql://postgres_db:5432/keycloak_db
+      - KC_DB_URL=jdbc:postgresql://postgres_db:5432/postgres
       - KC_DB_USERNAME=user
       - KC_DB_PASSWORD=password
       - KC_HOSTNAME_STRICT=false
@@ -83,13 +83,13 @@ services:
     build:
       context: ./api-gateway
       dockerfile: Dockerfile
-    image: api-gateway:1.0.0-SNAPSHOT
+    image: api-gateway:1.0-SNAPSHOT
     container_name: api-gateway
     deploy:
       resources:
         limits:
-          cpus: '0.25'
-          memory: 512M
+          cpus: '0.2'
+          memory: 384M
     env_file:
       - .env.docker
     environment:
@@ -101,6 +101,28 @@ services:
         condition: service_started
       keycloak:
         condition: service_healthy
+      book-service:
+        condition: service_started
+    networks:
+      - app-network
+
+  eureka-server:
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile
+    image: eureka-server:1.0-SNAPSHOT
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 384M
+    container_name: eureka-server
+    env_file:
+      - .env.docker
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    ports:
+      - "8761:8761"
     networks:
       - app-network
 
@@ -108,12 +130,12 @@ services:
     build:
       context: ./book-service
       dockerfile: Dockerfile
-    image: book-service:1.0.0-SNAPSHOT
+    image: book-service:1.0-SNAPSHOT
     deploy:
       resources:
         limits:
-          cpus: '0.25'
-          memory: 512M
+          cpus: '0.2'
+          memory: 384M
     container_name: book-service
     env_file:
       - .env.docker

@@ -33,13 +33,13 @@ public class BookController {
 
     @GetMapping
     public ResponseEntity<Page<Book>> getAllBooks(
-            @RequestParam(required = false) String author,
+            @RequestParam(name = "author", required = false) String author,
             @PageableDefault(size = 10, sort = "title") Pageable pageable) {
         return ResponseEntity.ok(bookService.findAll(author, pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Book> getBookById(@PathVariable Long id) {
+    public ResponseEntity<Book> getBookById(@PathVariable("id") Long id) {
         return bookService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
@@ -64,8 +64,10 @@ public class BookController {
 
     @PatchMapping("/{id}/price")
     @RequiresRole("ADMIN")
-    public ResponseEntity<Book> updatePrice(@PathVariable Long id,
-                                            @Positive @RequestParam BigDecimal newPrice) {
+    public ResponseEntity<Book> updatePrice(
+            @PathVariable("id") Long id,
+            @Positive @RequestParam("newPrice") BigDecimal newPrice
+    ) {
         return ResponseEntity.ok(bookService.updatePrice(id, newPrice));
     }
 

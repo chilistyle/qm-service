@@ -36,11 +36,15 @@ spring:
     max-in-memory-size: 256KB
   cloud:
     gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
       server:
         webflux:
           routes:
-            - id: book-service
-              uri: ${BOOK_SERVICE_URL}
+            - id: book-service-route
+              uri: lb://BOOK-SERVICE
               predicates:
                 - Path=/book/**
               filters:
@@ -103,6 +107,14 @@ management:
         enabled: true
     tags:
       application: ${spring.application.name}
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_HOST}/eureka/
+    register-with-eureka: true
+    fetch-registry: true
 
 logging:
   pattern:
