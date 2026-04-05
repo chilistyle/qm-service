@@ -92,7 +92,7 @@ services:
           cpus: '1'
           memory: 1G
     env_file:
-      - .env.docker
+      - .env.example
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - MANAGEMENT_TRACING_ENABLED=false
@@ -127,7 +127,7 @@ services:
           memory: 512M
     container_name: eureka-server
     env_file:
-      - .env.docker
+      - .env.example
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     ports:
@@ -147,7 +147,7 @@ services:
           memory: 512M
     container_name: book-service
     env_file:
-      - .env.docker
+      - .env.example
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     ports:
@@ -172,7 +172,7 @@ services:
     ports:
       - "8100:8100"
     env_file:
-      - .env.docker
+      - .env.example
     environment:
       - QUARKUS_PROFILE=docker
       - STORK_LIBRARY_SERVICE_SERVICE_REGISTRAR_RENEWAL_INTERVAL=10
