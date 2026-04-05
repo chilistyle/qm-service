@@ -35,7 +35,7 @@ jobs:
         run: |
           export $(grep -v '^#' .env.example | xargs)
           chmod +x mvnw
-          ./mvnw clean verify -B
+          ./mvnw clean install -B
 
       - name: Upload Test Reports
         if: failure()
