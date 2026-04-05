@@ -11,6 +11,7 @@
         <groupId>qm.service</groupId>
         <artifactId>qm-service</artifactId>
         <version>1.0-SNAPSHOT</version>
+        <relativePath>pom.xml</relativePath>
     </parent>
 
     <modules>

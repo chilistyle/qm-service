@@ -59,7 +59,7 @@ Domain service responsible for managing books.
 
 ---
 
-### 🔹 Library Service (library-service)
+### 🔹 Library Service (`library-service`)
 High-performance reactive service for library management operations.
 **Tech:**
 
@@ -76,7 +76,7 @@ High-performance reactive service for library management operations.
 - Reactive Persistence: Fully asynchronous database communication using PanacheRepository for clean and expressive data access.
 - Self-Healing Registration: Custom Eureka Watchdog (Kotlin) to ensure instant service re-registration after Eureka Server restarts.
 - Stork Integration: Client-side load balancing and robust service discovery.
-- REST API: /api/v1/books optimized for high-concurrency read/write operations without thread blocking.
+- REST API: `/api/v1/books` optimized for high-concurrency read/write operations without thread blocking.
 
 ---
 

@@ -58,27 +58,42 @@ class EurekaWatchdog(
 
     private fun registerAgain(appId: String) {
         val currentIp = getLocalIp()
+        val appNameUpper = appId.uppercase()
 
         val registrationBody = mapOf(
             "instance" to mapOf(
                 "instanceId" to appName,
-                "hostName" to host,
-                "app" to appId,
+                "hostName" to currentIp,
+                "app" to appNameUpper,
                 "ipAddr" to currentIp,
                 "status" to "UP",
+                "overriddenstatus" to "UNKNOWN",
                 "port" to mapOf("$" to servicePort.toInt(), "@enabled" to "true"),
+                "securePort" to mapOf("$" to 443, "@enabled" to "false"),
+                "vipAddress" to appName,
+                "secureVipAddress" to appName,
                 "dataCenterInfo" to mapOf(
                     "@class" to "com.netflix.appinfo.InstanceInfo\$DefaultDataCenterInfo",
                     "name" to "MyOwn"
+                ),
+                "leaseInfo" to mapOf(
+                    "renewalIntervalInSecs" to 10,
+                    "durationInSecs" to 30
                 )
             )
         )
 
-        client.post(port.toInt(), host, "/eureka/apps/$appId")
+        client.post(port.toInt(), host, "/eureka/apps/$appNameUpper")
             .sendJson(registrationBody)
             .subscribe().with(
-                { log.info("Re-registration successful with IP: $currentIp") },
-                { e -> log.error("Re-registration failed: ${e.message}") }
+                { res ->
+                    if (res.statusCode() in 200..204) {
+                        log.info("Successfully re-registered $appName at $currentIp")
+                    } else {
+                        log.error("Failed to register: ${res.statusCode()} ${res.bodyAsString()}")
+                    }
+                },
+                { e -> log.error("Re-registration error: ${e.message}") }
             )
     }
 

@@ -13,10 +13,10 @@ eureka:
     prefer-ip-address: true
     lease-renewal-interval-in-seconds: 30
   server:
-    enable-self-preservation: true
-    renewal-percent-threshold: 0.85
-    eviction-interval-timer-in-ms: 60000
+    enable-self-preservation: false
+    eviction-interval-timer-in-ms: 5000
     wait-time-in-ms-when-sync-empty: 0
+    response-cache-update-interval-ms: 2000
 
 spring:
   application:
