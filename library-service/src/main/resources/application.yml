@@ -1,0 +1,44 @@
+quarkus:
+  application:
+    name: library-service
+  http:
+    port: 8100
+  datasource:
+    db-kind: postgresql
+    username: ${BOOK_DB_USER}
+    password: ${BOOK_DB_PASSWORD}
+    reactive:
+      url: postgresql://${POSTGRES_DB_HOST}:${POSTGRES_DB_PORT}/${BOOK_DB_NAME}
+      max-size: 100
+      cache-prepared-statements: true
+  hibernate-orm:
+    schema-management:
+      strategy: none
+    log:
+      sql: false
+  log:
+    console:
+      format: "%d{HH:mm:ss} %-5p [%c{2.}] (%t) [%X{X-Correlation-Id}] %s%e%n"
+    category:
+      qm.service.library:
+        level: INFO
+
+  jackson:
+    fail-on-empty-beans: false
+    write-dates-as-timestamps: false
+
+  stork:
+    library-service:
+      service-registrar:
+        type: eureka
+        eureka-host: ${EUREKA_HOSTNAME}
+        eureka-port: ${EUREKA_PORT}
+
+
+"%docker":
+    log:
+      category:
+        qm.service.library:
+          level: DEBUG
+        com.github.fmcejudo:
+          level: DEBUG

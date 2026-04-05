@@ -3,12 +3,13 @@ name: qm-service
 services:
   postgres_db:
     image: postgres:18.3-alpine
+    command: postgres -c max_connections=500
     container_name: postgres_db
     deploy:
       resources:
         limits:
           cpus: '0.25'
-          memory: 128M
+          memory: 512M
     restart: always
     environment:
       POSTGRES_USER: user
@@ -17,9 +18,9 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./docker-initdb/restore.sh:/docker-entrypoint-initdb.d/01-restore.sh
-      - ./docker-initdb/keycloak-init.sql.gz:/tmp/backups/02-keycloak-init.sql.gz
-      - ./docker-initdb/init-db.sql:/docker-entrypoint-initdb.d/03-init.sql
+      - ./.docker-initdb/restore.sh:/docker-entrypoint-initdb.d/01-restore.sh
+      - ./.docker-initdb/keycloak-init.sql.gz:/tmp/backups/02-keycloak-init.sql.gz
+      - ./.docker-initdb/init-db.sql:/docker-entrypoint-initdb.d/03-init.sql
       - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U user -d book_db" ]
@@ -57,8 +58,8 @@ services:
       test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && echo -e 'GET /health/live HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && cat <&3 | grep 'HTTP/1.1 200 OK' || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 100
-      start_period: 30s
+      retries: 50
+      start_period: 10s
     depends_on:
       postgres_db:
         condition: service_healthy
@@ -71,7 +72,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.20'
+          cpus: '0.25'
           memory: 128M
     restart: always
     ports:
@@ -88,12 +89,14 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.2'
-          memory: 384M
+          cpus: '1'
+          memory: 1G
     env_file:
       - .env.docker
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - MANAGEMENT_TRACING_ENABLED=false
+      - MANAGEMENT_OBSERVATIONS_HTTP_SERVER_REQUESTS_ENABLED=false
     ports:
       - "8080:8080"
     depends_on:
@@ -111,11 +114,17 @@ services:
       context: ./eureka-server
       dockerfile: Dockerfile
     image: eureka-server:1.0-SNAPSHOT
+    healthcheck:
+      test: [ "CMD-SHELL", "netstat -an | grep 8761 | grep LISTEN || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 50
+      start_period: 10s
     deploy:
       resources:
         limits:
-          cpus: '0.2'
-          memory: 384M
+          cpus: '0.25'
+          memory: 512M
     container_name: eureka-server
     env_file:
       - .env.docker
@@ -134,8 +143,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.2'
-          memory: 384M
+          cpus: '0.5'
+          memory: 512M
     container_name: book-service
     env_file:
       - .env.docker
@@ -149,6 +158,31 @@ services:
     networks:
       - app-network
 
+  library-service:
+    build:
+      context: ./library-service
+      dockerfile: Dockerfile
+    image: library-service:1.0-SNAPSHOT
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    container_name: library-service
+    ports:
+      - "8100:8100"
+    env_file:
+      - .env.docker
+    environment:
+      - QUARKUS_PROFILE=docker
+      - STORK_LIBRARY_SERVICE_SERVICE_REGISTRAR_RENEWAL_INTERVAL=10
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - app-network
 
 networks:
   app-network:

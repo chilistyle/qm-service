@@ -10,8 +10,9 @@
 
     <parent>
         <groupId>qm.service</groupId>
-        <artifactId>qm-service</artifactId>
+        <artifactId>spring-parent</artifactId>
         <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom-sg.xml</relativePath>
     </parent>
 
     <dependencies>

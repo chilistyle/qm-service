@@ -5,8 +5,9 @@ app:
 server:
   port: 8080
   netty:
+    worker-threads: 4
+    acceptors: 1
     connection-timeout: 3s
-    idle-timeout: 60s
     max-keep-alive-requests: 1000
   http2:
     enabled: true
@@ -19,8 +20,13 @@ spring:
       port: ${REDIS_PORT}
       username: ${REDIS_USERNAME}
       password: ${REDIS_PASSWORD}
+      timeout: 2s
       connect-timeout: 2s
-      timeout: 1s
+      lettuce:
+        pool:
+          enabled: true
+          max-active: 200
+          max-wait: 500ms
   main:
     web-application-type: reactive
   application:
@@ -35,7 +41,20 @@ spring:
   codec:
     max-in-memory-size: 256KB
   cloud:
+    loadbalancer:
+      cache:
+        enabled: true
+        ttl: 30s
     gateway:
+      httpclient:
+        connect-timeout: 300
+        response-timeout: 1s
+        pool:
+          max-connections: 400
+          acquire-timeout: 2000
+          max-idle-time: 30s
+          max-life-time: 120s
+        compression: false
       discovery:
         locator:
           enabled: true
@@ -50,24 +69,27 @@ spring:
               filters:
                 - TokenRelay=
                 - StripPrefix=1
-          httpclient:
-            connect-timeout: 1000
-            response-timeout: 10s
-            pool:
-              max-connections: 2000
-              acquire-timeout: 5000
-              max-idle-time: 30s
-              max-life-time: 60s
-            compression: true
+            - id: library-service-route
+              uri: lb://LIBRARY-SERVICE
+              predicates:
+                - Path=/public/library/**
+              filters:
+                - StripPrefix=2
           default-filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: "#{@ipKeyResolver}"
             - name: Retry
               args:
-                retries: 2
-                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
+                retries: 1
+                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE, GATEWAY_TIMEOUT
                 methods: GET, HEAD
                 backoff:
-                  firstBackoff: 100ms
-                  maxBackoff: 500ms
+                  firstBackoff: 50ms
+                  maxBackoff: 250ms
+                  factor: 2
             - name: CircuitBreaker
               args:
                 name: defaultCB
@@ -78,18 +100,20 @@ resilience4j:
   circuitbreaker:
     instances:
       defaultCB:
-        slidingWindowSize: 50
         slidingWindowType: COUNT_BASED
+        slidingWindowSize: 200
+        minimumNumberOfCalls: 100
         failureRateThreshold: 50
-        slowCallRateThreshold: 80
-        slowCallDurationThreshold: 3s
-        waitDurationInOpenState: 10s
-        permittedNumberOfCallsInHalfOpenState: 10
-        minimumNumberOfCalls: 20
+        slowCallDurationThreshold: 1s
+        slowCallRateThreshold: 50
+        waitDurationInOpenState: 5s
+        permittedNumberOfCallsInHalfOpenState: 5
+
   timelimiter:
     instances:
       defaultCB:
-        timeoutDuration: 10s
+        timeoutDuration: 2s
+        cancelRunningFuture: true
 
 management:
   endpoints:
@@ -115,6 +139,7 @@ eureka:
       defaultZone: ${EUREKA_HOST}/eureka/
     register-with-eureka: true
     fetch-registry: true
+    registry-fetch-interval-seconds: 5
 
 logging:
   pattern:

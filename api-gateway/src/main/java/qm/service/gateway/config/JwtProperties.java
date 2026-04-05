@@ -26,7 +26,7 @@ public record JwtProperties(@NotBlank String jwkSetUri,
                 .uri(jwkSetUri)
                 .retrieve()
                 .bodyToMono(String.class)
-                .timeout(Duration.ofSeconds(5))
+                .timeout(Duration.ofSeconds(25))
                 .doOnError(e -> log.error("JWKS endpoint unavailable: {}", jwkSetUri))
                 .subscribe();
     }

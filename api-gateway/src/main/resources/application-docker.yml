@@ -1,5 +1,7 @@
 logging:
   level:
-    qm.service.gateway: TRACE
-    org.springframework.web.reactive: DEBUG
-    org.springframework.cloud.gateway: DEBUG
+    root: INFO
+    org.springframework.cloud.gateway: INFO
+    io.micrometer: INFO
+    io.lettuce: INFO
+    reactor.netty: INFO

@@ -3,3 +3,5 @@ logging:
     qm.service.book: TRACE
     org.springframework.web: DEBUG
     org.hibernate.SQL: DEBUG
+    org.springframework.boot.autoconfigure.logging: DEBUG
+    org.flywaydb: DEBUG

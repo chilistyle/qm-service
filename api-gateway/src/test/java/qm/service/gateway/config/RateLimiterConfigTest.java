@@ -5,7 +5,6 @@ import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
-import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -25,22 +24,6 @@ class RateLimiterConfigTest {
             .withConfiguration(AutoConfigurations.of(RateLimiterConfig.class))
             .withBean(ReactiveStringRedisTemplate.class, () -> Mockito.mock(ReactiveStringRedisTemplate.class))
             .withBean("redisRequestRateLimiterScript", RedisScript.class, () -> Mockito.mock(RedisScript.class));
-
-    @Test
-    void shouldCreateRedisRateLimiterWithCorrectDefaults() {
-        contextRunner.run(context -> {
-            assertThat(context).hasSingleBean(RedisRateLimiter.class);
-
-            RedisRateLimiter rateLimiter = context.getBean(RedisRateLimiter.class);
-
-            var configs = rateLimiter.getConfig();
-            assertThat(configs).containsKey("default");
-
-            var config = configs.get("default");
-            assertThat(config.getReplenishRate()).isEqualTo(10);
-            assertThat(config.getBurstCapacity()).isEqualTo(20);
-        });
-    }
 
     @Test
     void ipKeyResolverShouldResolveCorrectIp() {

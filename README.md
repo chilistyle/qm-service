@@ -59,11 +59,35 @@ Domain service responsible for managing books.
 
 ---
 
+### 🔹 Library Service (library-service)
+High-performance reactive service for library management operations.
+**Tech:**
+
+- Quarkus 3.33 (Reactive Stack)
+- Kotlin & Coroutines support
+- Hibernate Reactive with Mutiny
+- Panache Entity/Repository pattern
+- PostgreSQL Reactive Driver
+- SmallRye Stork (Service Discovery & Registration)
+
+**Capabilities:**
+
+- Non-blocking I/O: Built on top of Vert.x for maximum throughput, optimized for limited resources (1 CPU / 1 GB RAM).
+- Reactive Persistence: Fully asynchronous database communication using PanacheRepository for clean and expressive data access.
+- Self-Healing Registration: Custom Eureka Watchdog (Kotlin) to ensure instant service re-registration after Eureka Server restarts.
+- Stork Integration: Client-side load balancing and robust service discovery.
+- REST API: /api/v1/books optimized for high-concurrency read/write operations without thread blocking.
+
+---
+
 ## ✨ Key Features
 
 ### ⚡ Performance
 - Reactive Gateway (WebFlux)
 - Virtual Threads for efficient concurrency
+- Fully Reactive Stack (Vert.x Core + Hibernate Reactive)
+- Resource Efficiency: Optimized for low-resource environments (1 CPU / 1 GB RAM per node).
+- Non-blocking I/O: Fully asynchronous database communication in library-service. 
 
 ### 🔒 Security
 - OAuth2 with Keycloak
@@ -77,6 +101,8 @@ Domain service responsible for managing books.
 - Circuit Breaker (Resilience4j)
 - Retry mechanisms
 - Fallback strategies
+- Self-Healing Registry: Custom Watchdog logic for instant Eureka recovery.
+- Fail-safe Redis Integration: Non-blocking rate limiting with fallback strategies.
 
 ### 🔍 Observability
 - Correlation ID propagation
@@ -92,15 +118,17 @@ Domain service responsible for managing books.
 
 ## 🏗️ Tech Stack
 
-- Java 25
-- Spring Boot 4
-- Spring WebFlux / Spring MVC
+- Java 25 & Kotlin 2.3.10
+- Quarkus 3.33.1 (Reactive Stack)
+- Spring Boot 4 (Spring MVC & WebFlux)
 - Spring Cloud Gateway
 - Keycloak
 - Redis
 - PostgreSQL
 - Flyway
 - Docker
+- Hibernate Reactive / Mutiny
+- SmallRye Stork (Client-side Load Balancing)
 
 ---
 
@@ -115,6 +143,7 @@ Fully automated local setup using Docker.
 - Eureka Server
 - API Gateway
 - Book Service
+- Library Service
 
 ### Run:
 

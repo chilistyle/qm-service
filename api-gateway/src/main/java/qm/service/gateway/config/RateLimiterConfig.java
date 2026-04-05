@@ -11,21 +11,20 @@ import reactor.core.publisher.Mono;
  */
 @Configuration
 public class RateLimiterConfig {
-    @Bean
-    public RedisRateLimiter redisRateLimiter() {
-        //for testing config required
-        RedisRateLimiter.Config config = new RedisRateLimiter.Config()
-                .setReplenishRate(10)
-                .setBurstCapacity(20);
-        RedisRateLimiter limiter = new RedisRateLimiter(10, 20);
-        limiter.getConfig().put("default", config);
-        return limiter;
-    }
 
     @Bean
     public KeyResolver ipKeyResolver() {
-        return exchange ->
-                Mono.just(exchange.getRequest().getRemoteAddress().getAddress().getHostAddress());
+        return exchange -> {
+            String xff = exchange.getRequest().getHeaders().getFirst("X-Forwarded-For");
+            if (xff != null && !xff.isEmpty()) {
+                return Mono.just(xff.split(",")[0].trim());
+            }
 
+            return Mono.justOrEmpty(exchange.getRequest().getRemoteAddress())
+                    .map(addr -> addr.getAddress() != null
+                            ? addr.getAddress().getHostAddress()
+                            : addr.getHostString())
+                    .defaultIfEmpty("127.0.0.1");
+        };
     }
 }
