@@ -3,13 +3,14 @@ package qm.service.gateway;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import reactor.core.publisher.Hooks;
 
 /**
  * APIGatewayApplication -
  */
-@SpringBootApplication
+@SpringBootApplication(exclude = { RefreshAutoConfiguration.class })
 @ConfigurationPropertiesScan
 @EnableDiscoveryClient
 public class APIGatewayApplication {

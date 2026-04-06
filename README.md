@@ -12,6 +12,65 @@ It combines **reactive and blocking architectures**, integrates centralized secu
 ---
 
 ## 🧩 Architecture
+```mermaid
+graph TD
+    Client[🌐 Browser/Client] -->|Port 80| Nginx{Nginx Proxy}
+    
+    subgraph Frontend_Layer
+        Nginx -->|/| Next[Next-app:3000]
+    end
+
+    subgraph Auth_Layer
+        Nginx -->|/auth| KC[Keycloak:8080]
+        Next <-->|Internal Auth| KC
+    end
+
+    subgraph Backend_Layer
+        Nginx -->|/api| AGW[API Gateway:8080]
+        AGW -->|Discovery| Eureka[Eureka Server]
+        AGW -->|Route| BS[Book Service]
+        AGW -->|Route| LS[Library Service]
+    end
+
+    subgraph Persistence_Layer
+        BS --> DB[(PostgreSQL)]
+        LS --> DB
+        AGW --> RD[(Redis)]
+    end
+```
+### 🔹 Nginx Edge Proxy (`nginx-proxy`)
+High-performance reverse proxy acting as the unified entry point for the entire infrastructure.
+
+**Tech:**
+
+- Nginx Stable
+- Custom Buffer Tuning (128k/256k)
+
+**Responsibilities:**
+
+- Unified routing for next-app, keycloak, and api-gateway
+- SSL/TLS termination support
+- Header sanitization and propagation (X-Forwarded-For, X-Real-IP)
+- Optimized static content delivery and Gzip compression
+
+---
+### 🔹 Next Frontend (`next-app`)
+Modern web application serving as the primary user interface.
+
+**Tech:**
+
+- Next.js 16.2.2 (App Router)
+- Auth.js v5 (NextAuth)
+- Tailwind CSS
+
+**Capabilities:**
+
+- Server-Side Rendering (SSR): High performance and SEO-friendly pages.
+- Unified Auth Integration: Seamless login/logout flow via Keycloak.
+- Edge-compatible: Optimized for deployment within the Docker-native environment.
+- Responsive Design: Mobile-first UI for library management.
+
+---
 
 ### 🔹 API Gateway (`api-gateway`)
 Central entry point for all client requests.
@@ -89,10 +148,17 @@ High-performance reactive service for library management operations.
 - Resource Efficiency: Optimized for low-resource environments (1 CPU / 1 GB RAM per node).
 - Non-blocking I/O: Fully asynchronous database communication in library-service. 
 
+
 ### 🔒 Security
 - OAuth2 with Keycloak
 - JWT-based authentication
 - Stateless services
+- Auth.js v5 Integration: State-of-the-art authentication layer for Next.js.
+- Hybrid Keycloak Flow:
+- Internal: Token exchange via Docker-internal network (AUTH_KEYCLOAK_INNER).
+    - External: Browser-side redirection via Nginx for secure OIDC flow.
+- Silent Logout: Custom front-channel logout with id_token_hint to bypass Keycloak confirmation screens.
+- Token Rotation: Background refresh_token logic to maintain sessions without user interruption.
 
 ### 🚦 Rate Limiting
 - Redis-backed rate limiter
@@ -119,12 +185,13 @@ High-performance reactive service for library management operations.
 ## 🏗️ Tech Stack
 
 - Java 25 & Kotlin 2.3.10
+- Next.js 15 & Auth.js v5
+- Nginx (Reverse Proxy)
 - Quarkus 3.33.1 (Reactive Stack)
 - Spring Boot 4 (Spring MVC & WebFlux)
 - Spring Cloud Gateway
-- Keycloak
-- Redis
-- PostgreSQL
+- Keycloak (Identity & Access Management)
+- Redis & PostgreSQL
 - Flyway
 - Docker
 - Hibernate Reactive / Mutiny
@@ -137,13 +204,12 @@ High-performance reactive service for library management operations.
 Fully automated local setup using Docker.
 
 ### Services:
-- PostgreSQL
-- Redis
+- Nginx (Gateway Port 80)
+- Next-app (Frontend)
+- PostgreSQL / Redis
 - Keycloak
-- Eureka Server
-- API Gateway
-- Book Service
-- Library Service
+- Eureka Server / API Gateway
+- Book Service / Library Service
 
 ### Run:
 
@@ -160,14 +226,16 @@ make local
 
 ## 🔐 Authentication Flow
 
-1. User authenticates via Keycloak
-2. Receives JWT token
-3. Sends request to API Gateway
-4. Gateway validates token
-5. Request forwarded with headers (including roles & correlationId)
+1. User accesses Next-app via Nginx.
+2. Auth.js redirects browser to Keycloak (external URL).
+3. After login, Next-app exchanges code for tokens via internal Docker network.
+4. JWT is stored in a secure server-side session.
+5. All backend requests from Next-app to API Gateway include the Bearer token.
+6. Logout: Next-app clears local session and triggers a browser redirect to Keycloak for full SSO sign-out.
 
 ---
 
 ## 📄 License
 
 MIT License
+

@@ -41,6 +41,8 @@ spring:
   codec:
     max-in-memory-size: 256KB
   cloud:
+    refresh:
+      enabled: false
     gateway:
       httpclient:
         connect-timeout: 300
@@ -131,6 +133,8 @@ management:
 
 eureka:
   client:
+    healthcheck:
+      enabled: false
     service-url:
       defaultZone: ${EUREKA_HOST}/eureka/
     register-with-eureka: false

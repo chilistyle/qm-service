@@ -36,9 +36,14 @@ spring:
       prepStmtCacheSize: 250
       prepStmtCacheSqlLimit: 2048
       reWriteBatchedInserts: true
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
 
 eureka:
   client:
+    healthcheck:
+      enabled: false
     service-url:
       defaultZone: ${EUREKA_HOST}/eureka/
     register-with-eureka: true
