@@ -10,7 +10,7 @@ import reactor.core.publisher.Hooks;
 /**
  * APIGatewayApplication -
  */
-@SpringBootApplication(exclude = { RefreshAutoConfiguration.class })
+@SpringBootApplication(exclude = {RefreshAutoConfiguration.class})
 @ConfigurationPropertiesScan
 @EnableDiscoveryClient
 public class APIGatewayApplication {

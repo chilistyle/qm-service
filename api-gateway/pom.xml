@@ -79,5 +79,34 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
+    <profiles>
+        <profile>
+            <id>native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <mainClass>qm.service.gateway.APIGatewayApplication</mainClass>
+                            <!-- Include the Lua script used by RedisRateLimiter -->
+                            <buildArgs>
+                                <arg>-H:IncludeResources=META-INF/scripts/request_rate_limiter.lua</arg>
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

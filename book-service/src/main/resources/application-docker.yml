@@ -1,7 +1,7 @@
 logging:
   level:
-    qm.service.book: TRACE
-    org.springframework.web: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.springframework.boot.autoconfigure.logging: DEBUG
-    org.flywaydb: DEBUG
+    qm.service.book: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: INFO
+    org.springframework.boot.autoconfigure.logging: INFO
+    org.flywaydb: INFO

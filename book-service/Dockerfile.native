@@ -1,0 +1,31 @@
+FROM bellsoft/liberica-native-image-kit-container:jdk-25-nik-25.0.2-debug-glibc AS builder
+
+WORKDIR /build
+
+COPY .mvn/ .mvn
+COPY mvnw pom.xml pom-sg.xml pom-qs.xml ./
+
+COPY api-gateway/pom.xml ./api-gateway/
+COPY book-service/pom.xml ./book-service/
+COPY eureka-server/pom.xml ./eureka-server/
+COPY library-service/pom.xml ./library-service/
+
+
+RUN chmod +x mvnw && ./mvnw dependency:go-offline -B
+
+COPY book-service/src ./book-service/src
+
+RUN ./mvnw native:compile -Pnative -pl book-service -am -DskipTests
+
+FROM debian:bookworm-slim
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    libstdc++6 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /build/book-service/target/book-service .
+
+EXPOSE 8090
+ENTRYPOINT ["./book-service"]

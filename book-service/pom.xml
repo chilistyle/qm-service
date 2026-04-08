@@ -71,5 +71,42 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <profiles>
+        <profile>
+            <id>native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <mainClass>qm.service.book.BookServiceApplication</mainClass>
+                            <buildArgs>
+<!--                                <arg>&#45;&#45;initialize-at-build-time=com.google.gson,org.springframework.boot.json,org.springframework.boot.logging,org.springframework.boot.ansi</arg>-->
 
+<!--                                <arg>&#45;&#45;initialize-at-build-time=org.springframework.boot.json.GsonJsonParser$MapTypeToken,org.springframework.boot.json.JacksonJsonParser$MapTypeReference,org.springframework.boot.json.JsonWriter$PairExtractor$1</arg>-->
+
+<!--                                <arg>&#45;&#45;initialize-at-build-time=org.slf4j,ch.qos.logback,org.apache.commons.logging,org.apache.logging,java.util.logging.LogManager,org.apache.tomcat.util.net.openssl.panama.OpenSSLLifecycleListener</arg>-->
+
+<!--                                <arg>&#45;&#45;initialize-at-run-time=org.springframework.core.io.VfsUtils,org.apache.tomcat.util.net.openssl.OpenSSLEngine,org.apache.tomcat.jni.Pool,org.apache.tomcat.util.net.jsse.JSSEUtil,org.apache.tomcat.util.net.SSLUtilBase,com.netflix.discovery.shared.Application</arg>-->
+
+<!--                                <arg>-H:+InstallExitHandlers</arg>-->
+<!--                                <arg>-H:+ReportExceptionStackTraces</arg>-->
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

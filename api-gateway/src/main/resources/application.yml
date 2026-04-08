@@ -35,9 +35,9 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          realm-client-id: ${REALM_CLIENT_ID}
-          jwk-set-uri: ${JWK_SET_URI}
-          issuer-uri: ${ISSUER_URI}
+          realm-client-id: ${REALM_CLIENT_ID:client-id}
+          jwk-set-uri: ${JWK_SET_URI:http://localhost:8080}
+          issuer-uri: ${ISSUER_URI:http://localhost}
   codec:
     max-in-memory-size: 256KB
   cloud:
@@ -60,6 +60,12 @@ spring:
       server:
         webflux:
           routes:
+            - id: comments-service-route
+              uri: lb://COMMENT-SERVICE
+              predicates:
+                - Path=/public/comment/**
+              filters:
+                - StripPrefix=2
             - id: book-service-route
               uri: lb://BOOK-SERVICE
               predicates:

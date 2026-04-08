@@ -27,16 +27,38 @@ graph TD
 
     subgraph Backend_Layer
         Nginx -->|/api| AGW[API Gateway:8080]
+        
+        %% Auth Check Logic
+        AGW -->|Validate JWT| KC
+        
         AGW -->|Discovery| Eureka[Eureka Server]
+        
         AGW -->|Route| BS[Book Service]
         AGW -->|Route| LS[Library Service]
+        AGW -->|Route| CS[Comment Service]
+        
+        CS -.->|Register| Eureka
+        BS -.->|Register| Eureka
+        LS -.->|Register| Eureka
     end
 
     subgraph Persistence_Layer
-        BS --> DB[(PostgreSQL)]
-        LS --> DB
+        BS --> DB_PG[(PostgreSQL)]
+        LS --> DB_PG
+        
+        CS --> DB_MG[(MongoDB)]
+       
+       
         AGW --> RD[(Redis)]
     end
+
+    %% Styles
+    style CS fill:#4e73df,stroke:#2e59d9,color:#fff,stroke-width:2px
+    style AGW fill:#1cc88a,stroke:#17a673,color:#fff,stroke-width:2px
+    style DB_MG fill:#34a853,stroke:#1e7e34,color:#fff
+    style DB_PG fill:#336791,stroke:#244c6d,color:#fff
+    style BCK fill:#f8f9fc,stroke:#d1d3e2,stroke-dasharray: 5 5
+    style KC fill:#f6c23e,stroke:#f4b619,color:#fff
 ```
 ### 🔹 Nginx Edge Proxy (`nginx-proxy`)
 High-performance reverse proxy acting as the unified entry point for the entire infrastructure.
@@ -136,6 +158,27 @@ High-performance reactive service for library management operations.
 - Self-Healing Registration: Custom Eureka Watchdog (Kotlin) to ensure instant service re-registration after Eureka Server restarts.
 - Stork Integration: Client-side load balancing and robust service discovery.
 - REST API: `/api/v1/books` optimized for high-concurrency read/write operations without thread blocking.
+
+---
+
+### 🔹 Comment Service (`comment-service`)
+Lightweight and scalable microservice for managing user engagement and social interactions.
+**Tech:**
+
+- NestJS 11 (Node.js 20+ Runtime)
+- Mongoose (MongoDB Object Modeling)
+- class-validator & class-transformer
+- Eureka-JS-Client (Netflix Eureka Integration)
+
+**Capabilities:**
+
+- Non-blocking I/O Architecture: Built on top of Express/Fastify for high-concurrency handling of social interactions with minimal memory footprint (~60MB RAM in production).
+- NoSQL Persistence: Optimized for unstructured data and rapid write operations using MongoDB, ensuring horizontal scalability for comment threads.
+- Microservice Synergy:
+  - Self-Registration: Automatically registers with eureka-server for dynamic discovery by the api-gateway.
+  - Observability: Built-in Correlation ID propagation for end-to-end request tracing across the entire backend layer.
+- Robust Validation: Strict DTO (Data Transfer Object) enforcement using global ValidationPipe to ensure data integrity before persistence.
+- REST API: /api/comments endpoint supporting full CRUD operations and bookId-based filtering.
 
 ---
 
