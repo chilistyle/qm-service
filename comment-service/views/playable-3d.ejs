@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title><%= campaignName %></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; background: radial-gradient(#2c3e50, #000); }
+        canvas { display: block; }
+        #ui {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+        #cta-btn {
+            display: none;
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 40px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui">
+        <h2 id="msg">ЗНАЙДИ ТА КЛІКНИ НА 3 КУБА</h2>
+    </div>
+    <button id="cta-btn" onclick="handleCTA()">ВСТАНОВИТИ ЗАРАЗ</button>
+
+    <!-- Використовуємо type="module" для підтримки імпортів -->
+    <script type="module">
+        // Імпортуємо Three.js як модуль
+        import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.180.0/three.module.js';
+
+        // Дані з NestJS
+        const STORE_URL = "<%= storeUrl %>";
+        
+        // 1. Сцена та Камера
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 8;
+
+        // 2. Рендерер
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        // 3. Освітлення
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const pointLight = new THREE.PointLight(0xffffff, 1);
+        pointLight.position.set(5, 5, 5);
+        scene.add(pointLight);
+
+        // 4. Створення об'єктів
+        const cubes = [];
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
+
+        for (let i = 0; i < 12; i++) {
+            const material = new THREE.MeshPhongMaterial({ 
+                color: Math.random() * 0xffffff,
+                shininess: 100 
+            });
+            const cube = new THREE.Mesh(geometry, material);
+            
+            cube.position.set(
+                (Math.random() - 0.5) * 10,
+                (Math.random() - 0.5) * 10,
+                (Math.random() - 0.5) * 5
+            );
+            
+            cube.rotation.set(Math.random() * 2, Math.random() * 2, 0);
+            scene.add(cube);
+            cubes.push(cube);
+        }
+
+        // 5. Взаємодія (Raycaster)
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let clickedCount = 0;
+
+        window.addEventListener('pointerdown', (event) => {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(cubes);
+
+            if (intersects.length > 0) {
+                const target = intersects[0].object;
+                
+                // Проста анімація зникнення
+                target.scale.set(0, 0, 0);
+                clickedCount++;
+                
+                if (clickedCount >= 3) {
+                    document.getElementById('msg').innerText = "ЧУДОВО! ТИ ГОТОВИЙ!";
+                    document.getElementById('cta-btn').style.display = 'block';
+                }
+            }
+        });
+
+        // 6. Глобальна функція для кнопки (бо ми всередині модуля)
+        window.handleCTA = function() {
+            window.open(STORE_URL, '_blank');
+        };
+
+        // 7. Анімаційний цикл
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            cubes.forEach(cube => {
+                cube.rotation.x += 0.01;
+                cube.rotation.y += 0.01;
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        // 8. Адаптивність
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+        console.log("Three.js v180 Module Loaded");
+    </script>
+</body>
+</html>

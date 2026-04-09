@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>3D Physics Playable</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"
+        integrity="sha512-avLcnGxl5mqAX/wIKERdb1gFNkOLHh2W5JNCfJm5OugpEPBz7LNXJJ3BDjjwO00AxEY1MqdNjtEmiYhKC0ld7g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #111;
+            font-family: sans-serif;
+        }
+
+        #ui {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            pointer-events: none;
+        }
+
+        #cta-btn {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 40px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 100;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="ui">
+        <h1>ЗБИЙ ВЕЖУ!</h1>
+        <p>Клікай, щоб стріляти кулями</p>
+    </div>
+    <button id="cta-btn" onclick="window.handleCTA()">ЗАБРАТИ ПРИЗ</button>
+
+    <script type="module">
+        import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.180.0/three.module.js';
+
+        // --- 1. Ініціалізація фізики (CANNON) ---
+        const world = new CANNON.World();
+        world.gravity.set(0, -9.82, 0); // Земна гравітація
+        world.broadphase = new CANNON.NaiveBroadphase();
+
+        let shots = 0;
+        let lastShotTime = 0;
+        const shotCooldown = 300;
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        // Матеріал підлоги
+        const groundMaterial = new CANNON.Material("groundMaterial");
+        const boxMaterial = new CANNON.Material("boxMaterial");
+        const contactMaterial = new CANNON.ContactMaterial(groundMaterial, boxMaterial, {
+            friction: 0.4,
+            restitution: 0.3 // Пружність
+        });
+        world.addContactMaterial(contactMaterial);
+
+        // Фізична підлога
+        const groundBody = new CANNON.Body({
+            mass: 0, // 0 означає статичний об'єкт
+            shape: new CANNON.Plane(),
+            material: groundMaterial
+        });
+        groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+        world.addBody(groundBody);
+
+        // --- 2. Ініціалізація візуалізації (THREE) ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 5, 12);
+        camera.lookAt(0, 2, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(10, 20, 10);
+        light.castShadow = true;
+        scene.add(light);
+
+        // Візуальна підлога
+        const floorGeo = new THREE.PlaneGeometry(100, 100);
+        const floorMat = new THREE.MeshPhongMaterial({ color: 0x222222 });
+        const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+        floorMesh.rotation.x = -Math.PI / 2;
+        floorMesh.receiveShadow = true;
+        scene.add(floorMesh);
+
+        // --- 3. Створення вежі з кубів ---
+        const boxes = [];
+        const boxSize = 1;
+        const boxGeo = new THREE.BoxGeometry(boxSize, boxSize, boxSize);
+
+        for (let y = 0; y < 5; y++) {
+            for (let x = -1; x <= 1; x++) {
+                // Візуальний куб
+                const color = new THREE.Color().setHSL(y / 5, 0.7, 0.5);
+                const boxMesh = new THREE.Mesh(boxGeo, new THREE.MeshPhongMaterial({ color }));
+                boxMesh.castShadow = true;
+                scene.add(boxMesh);
+
+                // Фізичний куб
+                const boxBody = new CANNON.Body({
+                    mass: 5,
+                    shape: new CANNON.Box(new CANNON.Vec3(boxSize / 2, boxSize / 2, boxSize / 2)),
+                    position: new CANNON.Vec3(x * 1.1, y * 1.1 + 0.5, 0),
+                    material: boxMaterial
+                });
+                world.addBody(boxBody);
+
+                boxes.push({ mesh: boxMesh, body: boxBody });
+            }
+        }
+
+        window.addEventListener('pointerdown', (event) => {
+            const now = Date.now();
+            if (now - lastShotTime < shotCooldown) return;
+            if (shots >= 12) return;
+
+            lastShotTime = now;
+            shots++;
+
+            // 1. Координати
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            // 2. Напрямок
+            raycaster.setFromCamera(mouse, camera);
+
+            // 3. Візуал кулі
+            const ballRadius = 0.4;
+            const ballMesh = new THREE.Mesh(
+                new THREE.SphereGeometry(ballRadius, 16, 16),
+                new THREE.MeshPhongMaterial({ color: 0xffffff })
+            );
+            ballMesh.castShadow = true;
+            scene.add(ballMesh);
+
+            // 4. Фізика кулі
+            const ballBody = new CANNON.Body({
+                mass: 15,
+                shape: new CANNON.Sphere(ballRadius),
+                position: new CANNON.Vec3(camera.position.x, camera.position.y, camera.position.z)
+            });
+
+            const shootDirection = raycaster.ray.direction;
+            const shootForce = 50; // Трохи збільшив силу для ефекту
+
+            ballBody.velocity.set(
+                shootDirection.x * shootForce,
+                shootDirection.y * shootForce,
+                shootDirection.z * shootForce
+            );
+
+            world.addBody(ballBody);
+            boxes.push({ mesh: ballMesh, body: ballBody });
+
+            // Показати кнопку CTA після ліміту пострілів
+            if (shots === 12) {
+                setTimeout(() => {
+                    document.getElementById('cta-btn').style.display = 'block';
+                }, 1500);
+            }
+        });
+
+        // --- 5. Оновлення та Рендеринг ---
+        const fixedTimeStep = 1.0 / 60.0;
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Крок фізики
+            world.step(fixedTimeStep);
+
+            // Синхронізація візуальних об'єктів з фізичними тілами
+            boxes.forEach(obj => {
+                obj.mesh.position.copy(obj.body.position);
+                obj.mesh.quaternion.copy(obj.body.quaternion);
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        window.handleCTA = () => window.open("<%= storeUrl %>", "_blank");
+        animate();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title><%= campaignName %></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <script src="https://pixijs.download/release/pixi.min.js"></script>
+    
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; background: #1099bb; font-family: Arial, sans-serif; }
+        canvas { display: block; }
+        
+        #cta-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        #cta-button {
+            padding: 20px 50px;
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            background: #ff4757;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+
+        #cta-button:active { transform: scale(0.95); }
+        .win-text { color: white; font-size: 32px; margin-bottom: 30px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div id="cta-overlay">
+        <div class="win-text">ВІТАЄМО!<br>ВАША ЗНИЖКА ГОТОВА</div>
+        <button id="cta-button" onclick="handleCTA()">ЗАБРАТИ</button>
+    </div>
+
+    <script>
+        window.onload = async function() {
+            
+            if (typeof PIXI === 'undefined') {
+                console.error("PixiJS failed to load. Check /static/pixi.min.js");
+                return;
+            }
+
+            // 1. Параметри з NestJS
+            const TARGET_SCORE = <%= targetScore %>;
+            const STORE_URL = "<%= storeUrl %>";
+            const CORRELATION_ID = "<%= correlationId %>";
+
+            // 2. MRAID Setup
+            const mraid = window.mraid || {
+                open: (url) => { window.open(url, '_blank'); },
+                getState: () => 'default'
+            };
+
+            // 3. Ініціалізація PixiJS v7
+            const app = new PIXI.Application();
+            await app.init({ 
+                background: '#1099bb',
+                resizeTo: window,
+                antialias: true
+            });
+            document.body.appendChild(app.canvas);
+
+            let score = 0;
+            const gifts = [];
+
+            // 4. Стиль тексту (v7 синтаксис)
+            const scoreStyle = new PIXI.TextStyle({
+                fill: '#ffffff',
+                fontSize: 32,
+                fontWeight: 'bold'
+            });
+
+            const scoreText = new PIXI.Text({
+                text: `Злови ${TARGET_SCORE}: 0`,
+                style: scoreStyle
+            });
+            scoreText.x = 20;
+            scoreText.y = 20;
+            app.stage.addChild(scoreText);
+
+            // 5. Функція створення подарунків
+            function createGift() {
+                const gift = new PIXI.Container();
+                
+                const box = new PIXI.Graphics()
+                    .roundRect(-30, -30, 60, 60, 10)
+                    .fill(0xffcf33);
+                
+                const ribbon = new PIXI.Graphics()
+                    .rect(-30, -5, 60, 10)
+                    .rect(-5, -30, 10, 60)
+                    .fill(0xff4757);
+
+                gift.addChild(box, ribbon);
+                gift.x = Math.random() * (app.screen.width - 60) + 30;
+                gift.y = -100;
+                gift.eventMode = 'static'; // v7 аналог interactive = true
+                gift.cursor = 'pointer';
+
+                gift.on('pointerdown', () => {
+                    score++;
+                    scoreText.text = `Злови ${TARGET_SCORE}: ${score}`;
+                    app.stage.removeChild(gift);
+                    if (score >= TARGET_SCORE) showEndCard();
+                });
+
+                app.stage.addChild(gift);
+                gifts.push(gift);
+            }
+
+            function showEndCard() {
+                app.ticker.stop();
+                document.getElementById('cta-overlay').style.display = 'flex';
+            }
+
+            window.handleCTA = function() {
+                mraid.open(STORE_URL);
+            }
+
+            // 6. Ігровий цикл
+            let spawnTimer = 0;
+            app.ticker.add((ticker) => {
+                spawnTimer += ticker.deltaTime;
+                
+                if (spawnTimer > 40) {
+                    createGift();
+                    spawnTimer = 0;
+                }
+
+                for (let i = gifts.length - 1; i >= 0; i--) {
+                    const gift = gifts[i];
+                    gift.y += 5 * ticker.deltaTime;
+                    gift.rotation += 0.05 * ticker.deltaTime;
+
+                    if (gift.y > app.screen.height + 100) {
+                        app.stage.removeChild(gift);
+                        gifts.splice(i, 1);
+                    }
+                }
+            });
+
+            console.log("Playable Game Started, CID:", CORRELATION_ID);
+        };
+    </script>
+</body>
+</html>
