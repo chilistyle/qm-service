@@ -48,4 +48,9 @@ export class PlayablesController {
     getAmmo2Playable() {
         return { storeUrl: 'https://example.com' };
     }
+@Get('/flappy')
+@Render('flappy-bird')
+getPlayableFalppy() {
+  return { title: 'Playable Ad Concept' };
+}
 }

@@ -41,6 +41,9 @@ spring:
   codec:
     max-in-memory-size: 256KB
   cloud:
+    loadbalancer:
+      eager-load:
+        clients: [COMMENT-SERVICE, BOOK-SERVICE, LIBRARY-SERVICE]
     refresh:
       enabled: false
     gateway:

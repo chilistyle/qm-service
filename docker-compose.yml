@@ -87,7 +87,9 @@ services:
         condition: service_started
       keycloak:
         condition: service_healthy
-      book-service:
+#      book-service:
+#        condition: service_started
+      eureka-server:
         condition: service_started
     networks:
       - app-network
@@ -126,7 +128,9 @@ services:
     ports:
       - "8090:8090"
     depends_on:
-      postgres_db:
+      keycloak:
+        condition: service_healthy
+      eureka-server:
         condition: service_healthy
     networks:
       - app-network
@@ -144,7 +148,7 @@ services:
     environment:
       - QUARKUS_PROFILE=docker
     depends_on:
-      postgres_db:
+      keycloak:
         condition: service_healthy
       eureka-server:
         condition: service_healthy
@@ -186,8 +190,10 @@ services:
     ports:
       - '3010:3010'
     depends_on:
-      - mongodb
-      - eureka-server
+      mongodb:
+        condition: service_started
+      eureka-server:
+        condition: service_healthy
     env_file:
       - .env.example
     environment:

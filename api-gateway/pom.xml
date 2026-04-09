@@ -99,10 +99,6 @@
                         </executions>
                         <configuration>
                             <mainClass>qm.service.gateway.APIGatewayApplication</mainClass>
-                            <!-- Include the Lua script used by RedisRateLimiter -->
-                            <buildArgs>
-                                <arg>-H:IncludeResources=META-INF/scripts/request_rate_limiter.lua</arg>
-                            </buildArgs>
                         </configuration>
                     </plugin>
                 </plugins>

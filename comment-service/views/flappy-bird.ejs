@@ -1,0 +1,126 @@
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title><%= title %></title>
+    <!-- Підключаємо останні версії PixiJS та Matter.js -->
+    <script src="https://pixijs.download/release/pixi.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.20.0/matter.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; background: #222; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; }
+        canvas { border: 4px solid #fff; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body>
+    <script>
+        (async () => {
+            // --- 1. Ініціалізація PixiJS (v8) ---
+            const app = new PIXI.Application();
+            await app.init({ 
+                width: 400, 
+                height: 600, 
+                backgroundColor: 0x4ec0ca,
+                antialias: true 
+            });
+            document.body.appendChild(app.canvas);
+
+            // --- 2. Ініціалізація Matter.js (Physics Engine) ---
+            const engine = Matter.Engine.create();
+            engine.gravity.y = 1.5; // Налаштування вектора гравітації
+
+            // --- 3. Створення гравця (Пташка) ---
+            // Використовуємо Circle body для коректної колізії
+            const bird = Matter.Bodies.circle(100, 300, 15, {
+                restitution: 0.4, // Пружність
+                frictionAir: 0.03 // Опір повітря (Aero drag)
+            });
+            Matter.World.add(engine.world, bird);
+
+            const birdGfx = new PIXI.Graphics();
+            birdGfx.beginFill(0xFFD700).drawCircle(0, 0, 15).endFill();
+            app.stage.addChild(birdGfx);
+
+            // --- 4. Логіка труб (Obstacles) ---
+            const pipes = [];
+            const spawnPipe = () => {
+                const gap = 170;
+                const minPipeHeight = 50;
+                const randomPos = Math.random() * (400 - gap - minPipeHeight * 2) + minPipeHeight;
+
+                // Створюємо фізичні тіла (Static)
+                const topPipe = Matter.Bodies.rectangle(450, randomPos - 200, 60, 400, { isStatic: true });
+                const botPipe = Matter.Bodies.rectangle(450, randomPos + gap + 200, 60, 400, { isStatic: true });
+                
+                const gfx = new PIXI.Graphics();
+                app.stage.addChild(gfx);
+
+                pipes.push({ topPipe, botPipe, gfx });
+                Matter.World.add(engine.world, [topPipe, botPipe]);
+            };
+
+            // --- 5. Керування (Input) ---
+            const jump = () => {
+                // Застосування вектора швидкості (Vector Math)
+                // Ми скидаємо Y швидкість, щоб кожен клік мав однаковий "імпульс"
+                Matter.Body.setVelocity(bird, { x: 0, y: -8 });
+            };
+
+            window.addEventListener('keydown', (e) => { if(e.code === 'Space') jump(); });
+            app.canvas.addEventListener('mousedown', jump);
+
+            // --- 6. Основний ігровий цикл (Game Loop) ---
+            app.ticker.add((ticker) => {
+                Matter.Engine.update(engine, ticker.deltaMS);
+
+                // Синхронізація графіки з фізикою
+                birdGfx.x = bird.position.x;
+                birdGfx.y = bird.position.y;
+                
+                // Динамічний нахил (використання швидкості для обчислення кута)
+                birdGfx.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, bird.velocity.y * 0.1));
+
+                // Оновлення перешкод
+                for (let i = pipes.length - 1; i >= 0; i--) {
+                    const p = pipes[i];
+                    
+                    // Рух труб (Linear translation)
+                    Matter.Body.translate(p.topPipe, { x: -4, y: 0 });
+                    Matter.Body.translate(p.botPipe, { x: -4, y: 0 });
+
+                    // Малювання (VFX)
+                    p.gfx.clear();
+                    p.gfx.beginFill(0x75c130).lineStyle(3, 0x558820);
+                    p.gfx.drawRect(p.topPipe.position.x - 30, p.topPipe.position.y - 200, 60, 400);
+                    p.gfx.drawRect(p.botPipe.position.x - 30, p.botPipe.position.y - 200, 60, 400);
+                    p.gfx.endFill();
+
+                    // Collision Detection (Перевірка зіткнення)
+                    // Matter.js автоматично рахує колізії, але тут ми робимо просту перевірку меж
+                    if (Matter.Query.collides(bird, [p.topPipe, p.botPipe]).length > 0) {
+                        location.reload(); // Game Over
+                    }
+
+                    // Видалення труб, що вийшли за екран (Memory management)
+                    if (p.topPipe.position.x < -100) {
+                        Matter.World.remove(engine.world, [p.topPipe, p.botPipe]);
+                        app.stage.removeChild(p.gfx);
+                        pipes.splice(i, 1);
+                    }
+                }
+
+                // Спавн нових труб кожні ~1.5 секунди
+                if (Math.random() < 0.01) {
+                    if (pipes.length === 0 || pipes[pipes.length - 1].topPipe.position.x < 200) {
+                        spawnPipe();
+                    }
+                }
+
+                // Death zone (виліт за межі екрану)
+                if (bird.position.y > 620 || bird.position.y < -20) {
+                    location.reload();
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
