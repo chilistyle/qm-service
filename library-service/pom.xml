@@ -17,6 +17,9 @@
 
     <properties>
         <skipITs>true</skipITs>
+        <quarkus.container-image.group></quarkus.container-image.group>
+        <quarkus.container-image.name>${artifactId}</quarkus.container-image.name>
+        <quarkus.container-image.tag>${version}</quarkus.container-image.tag>
     </properties>
 
     <dependencies>
