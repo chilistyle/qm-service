@@ -8,7 +8,7 @@ import { Comment } from './schemas/comment.schema';
 @Injectable()
 export class CommentsService {
   constructor(
-    @InjectModel(Comment.name) private commentModel: Model<Comment>
+    @InjectModel(Comment.name) private commentModel: Model<Comment>,
   ) {}
 
   async create(createCommentDto: CreateCommentDto): Promise<Comment> {
@@ -23,7 +23,6 @@ export class CommentsService {
   async findByBookId(bookId: string) {
     return this.commentModel.find({ bookId }).exec();
   }
-
 
   findOne(id: number) {
     return `This action returns a #${id} comment`;

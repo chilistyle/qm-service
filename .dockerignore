@@ -1,0 +1,15 @@
+.git/
+.github/
+.idea/
+
+**/target/
+**/node_modules/
+**/.next/
+**/dist/
+**/.terraform/
+
+.env.local
+next-app/.env.local
+
+infra/terraform/**/.terraform/
+infra/terraform/**/*.tfstate

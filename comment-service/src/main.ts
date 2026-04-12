@@ -7,11 +7,11 @@ import { join } from 'path';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.useStaticAssets(join(process.cwd(), 'public'), {
-    prefix: '/static/', 
+    prefix: '/static/',
   });
   app.setBaseViewsDir(join(process.cwd(), 'views')); // Шукає папку views у корені проекту
   app.setViewEngine('ejs');
-  app.useGlobalPipes(new ValidationPipe()); 
+  app.useGlobalPipes(new ValidationPipe());
   app.enableCors();
   await app.listen(process.env.PORT ?? 3010);
 }

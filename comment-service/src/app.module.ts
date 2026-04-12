@@ -8,10 +8,12 @@ import { PlayablesController } from './playables/playables.controller';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://localhost:27017/nestdb'),
+    MongooseModule.forRoot(
+      process.env.MONGO_URI || 'mongodb://localhost:27017/nestdb',
+    ),
     CommentsModule,
   ],
   controllers: [AppController, PlayablesController],
   providers: [AppService, EurekaService],
 })
-export class AppModule { }
+export class AppModule {}

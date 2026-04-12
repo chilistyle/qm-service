@@ -72,8 +72,8 @@ services:
 
   api-gateway:
     build:
-      context: ./api-gateway
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: api-gateway/Dockerfile
     image: api-gateway:1.0-SNAPSHOT
     container_name: api-gateway
     env_file:
@@ -96,8 +96,8 @@ services:
 
   eureka-server:
     build:
-      context: ./eureka-server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: eureka-server/Dockerfile
     image: eureka-server:1.0-SNAPSHOT
     healthcheck:
       test: [ "CMD-SHELL", "netstat -an | grep 8761 | grep LISTEN || exit 1" ]
@@ -117,8 +117,8 @@ services:
 
   book-service:
     build:
-      context: ./book-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: book-service/Dockerfile
     image: book-service:1.0-SNAPSHOT
     container_name: book-service
     env_file:
@@ -137,8 +137,8 @@ services:
 
   library-service:
     build:
-      context: ./library-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: library-service/Dockerfile
     image: library-service:1.0-SNAPSHOT
     container_name: library-service
     ports:

@@ -9,10 +9,10 @@ export class EurekaService implements OnModuleInit, OnModuleDestroy {
     this.client = new Eureka({
       instance: {
         app: 'comment-service',
-        hostName: 'comment-service', 
+        hostName: 'comment-service',
         ipAddr: '127.0.0.1',
         port: {
-          '$': process.env.PORT ?? 3010,
+          $: process.env.PORT ?? 3010,
           '@enabled': true,
         },
         vipAddress: 'comment-service',
@@ -22,7 +22,7 @@ export class EurekaService implements OnModuleInit, OnModuleDestroy {
         },
       },
       eureka: {
-        host: process.env.EUREKA_HOSTNAME, 
+        host: process.env.EUREKA_HOSTNAME,
         port: process.env.EUREKA_PORT,
         servicePath: '/eureka/apps/',
       },
