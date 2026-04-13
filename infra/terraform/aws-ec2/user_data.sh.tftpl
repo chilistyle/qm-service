@@ -93,3 +93,8 @@ chown ubuntu:ubuntu /opt/qm-service/.env
 # Build and run (single command — builds images then starts containers)
 docker compose build
 docker compose up -d
+
+
+docker compose exec keycloak /opt/keycloak/bin/kcadm.sh config credentials --server http://127.0.0.1:8080/auth --realm master --user admin --password admin
+CLIENT_ID=$(docker compose exec keycloak /opt/keycloak/bin/kcadm.sh get clients -r qm-realm -q clientId=qm-client | jq -r '.[0].id')
+docker compose exec keycloak /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID -r qm-realm -s "rootUrl=http://$public_dns/" -s "redirectUris=[\"http://$public_dns/*\"]" -s "webOrigins=[\"http://$public_dns/\"]"
