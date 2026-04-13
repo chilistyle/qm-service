@@ -15,7 +15,12 @@ output "public_dns" {
 
 output "app_url" {
   description = "Base HTTP URL of qm-service via nginx"
-  value       = "http://${aws_instance.qm_service.public_ip}"
+  value       = aws_instance.qm_service.public_dns != "" ? "http://${aws_instance.qm_service.public_dns}" : "http://${aws_instance.qm_service.public_ip}"
+}
+
+output "app_https_url" {
+  description = "Base HTTPS URL if TLS is configured in nginx"
+  value       = aws_instance.qm_service.public_dns != "" ? "https://${aws_instance.qm_service.public_dns}" : "https://${aws_instance.qm_service.public_ip}"
 }
 
 output "ssh_command" {

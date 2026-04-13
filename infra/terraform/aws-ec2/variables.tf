@@ -49,7 +49,7 @@ variable "app_repo_branch" {
 variable "enable_https" {
   description = "Open HTTPS port 443 on security group"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "extra_ingress_ports" {

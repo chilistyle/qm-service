@@ -34,22 +34,61 @@ else
   cd "$APP_DIR"
 fi
 
+METADATA_BASE="http://169.254.169.254/latest"
+IMDS_TOKEN="$(curl -s --fail --max-time 3 -X PUT "$METADATA_BASE/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" || true)"
+
+get_metadata() {
+  local path="$1"
+  if [ -n "$IMDS_TOKEN" ]; then
+    curl -s --fail --max-time 3 -H "X-aws-ec2-metadata-token: $IMDS_TOKEN" "$METADATA_BASE/meta-data/$path" || true
+  else
+    curl -s --fail --max-time 3 "$METADATA_BASE/meta-data/$path" || true
+  fi
+}
+
+# attempt to use Terraform-substituted $${public_dns} if present, otherwise query EC2 metadata
+if [ -z "$${public_dns:-}" ] || [ "$${public_dns}" = "null" ]; then
+  # Retry metadata for a short period in case network/IMDS not immediately available.
+  public_dns=""
+  elapsed=0
+  max_wait=60
+  interval=2
+  while [ $elapsed -lt $max_wait ]; do
+    META_HOSTNAME="$(get_metadata public-hostname)"
+    if [ -n "$META_HOSTNAME" ]; then
+      public_dns="$META_HOSTNAME"
+      break
+    fi
+    META_IP="$(get_metadata public-ipv4)"
+    if [ -n "$META_IP" ]; then
+      public_dns="$META_IP"
+      break
+    fi
+    sleep $interval
+    elapsed=$((elapsed + interval))
+  done
+
+  # Final fallback to private IP if no public address was assigned
+  if [ -z "$public_dns" ]; then
+    PRIVATE_IP="$(get_metadata local-ipv4)"
+    public_dns="$PRIVATE_IP"
+  fi
+  # log resolved value for debugging cloud-init
+  echo "user_data: resolved public_dns=$public_dns" >> /var/log/cloud-init-output.log || true
+fi
+
 # docker-compose.yml already uses env_file entries from the repository.
 # Generate runtime .env replacing localhost with the instance public DNS.
 # Requires Terraform to pass `public_dns` into the templatefile context.
 if [ -f "$APP_DIR/.env.example" ]; then
-  sed "s/localhost/${public_dns}/g" "$APP_DIR/.env.example" > /opt/qm-service/.env
-  
-# else
-#   cat > /opt/qm-service/.env <<EOF
-# KC_HOSTNAME_URL=http://${public_dns}/auth
-# KC_HOSTNAME=${public_dns}
-# ISSUER_URI=http://${public_dns}/auth/realms/qm
-# ALLOWED_ORIGINS=http://${public_dns},http://localhost
-# # Add additional variables below as needed
-# EOF
-# fi
-# chown ubuntu:ubuntu /opt/qm-service/.env
+  if [ -n "$public_dns" ]; then
+    sed "s/localhost/$${public_dns}/g" "$APP_DIR/.env.example" > /opt/qm-service/.env
+  else
+    echo "user_data: public_dns empty — keeping localhost values in .env" >> /var/log/cloud-init-output.log || true
+    cp "$APP_DIR/.env.example" /opt/qm-service/.env
+  fi
+fi
+chown ubuntu:ubuntu /opt/qm-service/.env
 
 # Build and run (single command — builds images then starts containers)
 docker compose build

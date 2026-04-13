@@ -86,10 +86,10 @@ resource "aws_instance" "qm_service" {
   subnet_id                   = data.aws_subnets.default.ids[0]
   vpc_security_group_ids      = [aws_security_group.qm_service.id]
   associate_public_ip_address = true
+  user_data_replace_on_change = true
   key_name                    = var.key_name
 
   user_data = templatefile("${path.module}/user_data.sh.tftpl", {
-    public_dns = aws_instance.qm_service.public_dns
     app_repo_url    = var.app_repo_url
     app_repo_branch = var.app_repo_branch
   })
@@ -105,3 +105,13 @@ resource "aws_instance" "qm_service" {
     Project = "qm-service"
   }
 }
+
+# Allocate and attach an Elastic IP so the instance has a public address
+#resource "aws_eip" "qm_service" {
+#  instance = aws_instance.qm_service.id
+#  domain   = "vpc"
+
+#  tags = {
+#    Name = "${var.instance_name}-eip"
+#  }
+#}
