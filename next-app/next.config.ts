@@ -1,10 +1,15 @@
 import type { NextConfig } from "next";
 
+const publicDns = process.env.PUBLIC_DNS ?? "localhost";
+
 const nextConfig: NextConfig = {
-  output: 'standalone',
+  output: "standalone",
   experimental: {
     serverActions: {
-      allowedOrigins: ['localhost', 'next-app:3000'],
+      allowedOrigins: [
+        `${publicDns}`,
+        "next-app:3000",
+      ],
     },
   },
 };

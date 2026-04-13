@@ -4,7 +4,20 @@ set -euxo pipefail
 export DEBIAN_FRONTEND=noninteractive
 
 apt-get update -y
-apt-get install -y ca-certificates curl git docker.io docker-compose-v2
+apt-get install -y ca-certificates curl gnupg git
+
+# Official Docker CE (includes buildx + compose plugins)
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+chmod a+r /etc/apt/keyrings/docker.gpg
+
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+  https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+apt-get update -y
+apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 systemctl enable --now docker
 usermod -aG docker ubuntu
@@ -22,5 +35,22 @@ else
 fi
 
 # docker-compose.yml already uses env_file entries from the repository.
+# Generate runtime .env replacing localhost with the instance public DNS.
+# Requires Terraform to pass `public_dns` into the templatefile context.
+if [ -f "$APP_DIR/.env.example" ]; then
+  sed "s/localhost/${public_dns}/g" "$APP_DIR/.env.example" > /opt/qm-service/.env
+  
+# else
+#   cat > /opt/qm-service/.env <<EOF
+# KC_HOSTNAME_URL=http://${public_dns}/auth
+# KC_HOSTNAME=${public_dns}
+# ISSUER_URI=http://${public_dns}/auth/realms/qm
+# ALLOWED_ORIGINS=http://${public_dns},http://localhost
+# # Add additional variables below as needed
+# EOF
+# fi
+# chown ubuntu:ubuntu /opt/qm-service/.env
+
+# Build and run (single command — builds images then starts containers)
 docker compose build
 docker compose up -d

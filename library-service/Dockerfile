@@ -3,6 +3,10 @@ WORKDIR /workspace
 
 COPY . .
 RUN chmod +x mvnw
+# Install the Quarkus parent into the local repo to ensure the POM is resolvable
+# during Quarkus code generation inside the builder container.
+RUN ./mvnw -B -DskipTests -pl :quarkus-parent -am install
+
 RUN ./mvnw -B -DskipTests -pl library-service -am package
 
 FROM bellsoft/liberica-openjre-alpine:25

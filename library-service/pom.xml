@@ -64,5 +64,4 @@
             <artifactId>quarkus-container-image-docker</artifactId>
         </dependency>
     </dependencies>
-
 </project>

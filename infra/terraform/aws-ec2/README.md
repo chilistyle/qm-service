@@ -31,6 +31,9 @@ terraform init
 terraform plan
 terraform apply
 ```
+icacls.exe qmpair.pem /reset
+icacls.exe qmpair.pem /grant:r "$($env:username):(R)"
+icacls.exe qmpair.pem /inheritance:r
 
 4. Check outputs:
 

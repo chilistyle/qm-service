@@ -89,6 +89,7 @@ resource "aws_instance" "qm_service" {
   key_name                    = var.key_name
 
   user_data = templatefile("${path.module}/user_data.sh.tftpl", {
+    public_dns = aws_instance.qm_service.public_dns
     app_repo_url    = var.app_repo_url
     app_repo_branch = var.app_repo_branch
   })

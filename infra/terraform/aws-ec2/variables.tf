@@ -13,7 +13,7 @@ variable "instance_name" {
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string
-  default     = "t3.large"
+  default     = "m7i-flex.large"
 }
 
 variable "ssh_allowed_cidr" {

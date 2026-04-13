@@ -4,11 +4,11 @@ MVN = mvnw
 
 build-apps:
 	@echo "--- Building JAR files with Maven ---"
-	$(MVN) clean package -DskipTests
+	docker compose build
 
 local: build-apps
 	@echo "--- Starting Docker containers ---"
-	docker-compose up -d --build
+	docker-compose up -d
 
 down:
 	docker-compose down
