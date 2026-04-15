@@ -9,7 +9,7 @@ async function bootstrap() {
   app.useStaticAssets(join(process.cwd(), 'public'), {
     prefix: '/static/',
   });
-  app.setBaseViewsDir(join(process.cwd(), 'views')); // Шукає папку views у корені проекту
+  app.setBaseViewsDir(join(process.cwd(), 'views')); 
   app.setViewEngine('ejs');
   app.useGlobalPipes(new ValidationPipe());
   app.enableCors();
