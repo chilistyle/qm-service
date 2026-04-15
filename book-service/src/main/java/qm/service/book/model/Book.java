@@ -42,6 +42,6 @@ public class Book {
 
     @Override
     public final int hashCode() {
-        return getClass().hashCode();
+        return Book.class.hashCode();
     }
 }

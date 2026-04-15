@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,13 +13,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.MDC;
 
 import java.io.IOException;
+import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
 
-/**
- * MdcFilterTest -
- */
 @ExtendWith(MockitoExtension.class)
 class MdcFilterTest {
 
@@ -34,14 +34,22 @@ class MdcFilterTest {
     @Mock
     private FilterChain filterChain;
 
-    @Test
-    void shouldPutCorrelationIdInMdcAndContinueChain() throws IOException, ServletException {
-        // Given
-        String testId = "test-uuid-123";
-        when(request.getHeader("X-Correlation-Id")).thenReturn(testId);
+    private static final String CORRELATION_ID_HEADER = "X-Correlation-Id";
 
+    @BeforeEach
+    void setUp() {
+        MDC.clear();
+    }
+
+    @Test
+    void shouldAddCorrelationIdToMdc_WhenHeaderIsPresent() throws ServletException, IOException {
+        // Given
+        String correlationId = UUID.randomUUID().toString();
+        when(request.getHeader(CORRELATION_ID_HEADER)).thenReturn(correlationId);
+
+        // Verify that the MDC contains the value during chain.doFilter execution
         doAnswer(invocation -> {
-            assertThat(MDC.get("X-Correlation-Id")).isEqualTo(testId);
+            assertEquals(correlationId, MDC.get(CORRELATION_ID_HEADER));
             return null;
         }).when(filterChain).doFilter(request, response);
 
@@ -49,21 +57,61 @@ class MdcFilterTest {
         mdcFilter.doFilter(request, response, filterChain);
 
         // Then
-        verify(filterChain, times(1)).doFilter(request, response);
-        assertThat(MDC.get("X-Correlation-Id")).isNull();
+        verify(filterChain).doFilter(request, response);
+        // After filter completion, MDC should be empty due to try-with-resources
+        assertNull(MDC.get(CORRELATION_ID_HEADER));
     }
 
     @Test
-    void shouldWorkWhenHeaderIsMissing() throws IOException, ServletException {
+    void shouldNotAddCorrelationIdToMdc_WhenHeaderIsMissing() throws ServletException, IOException {
         // Given
-        when(request.getHeader("X-Correlation-Id")).thenReturn(null);
+        when(request.getHeader(CORRELATION_ID_HEADER)).thenReturn(null);
+
+        // Verify that MDC contains a generated UUID during execution
+        doAnswer(invocation -> {
+            assertNotNull(MDC.get(CORRELATION_ID_HEADER));
+            assertFalse(MDC.get(CORRELATION_ID_HEADER).isEmpty());
+            return null;
+        }).when(filterChain).doFilter(request, response);
 
         // When
         mdcFilter.doFilter(request, response, filterChain);
 
         // Then
         verify(filterChain).doFilter(request, response);
-        assertThat(MDC.get("X-Correlation-Id")).isNull();
+        assertNull(MDC.get(CORRELATION_ID_HEADER));
+    }
+
+    @Test
+    void shouldNotAddCorrelationIdToMdc_WhenHeaderIsEmpty() throws ServletException, IOException {
+        // Given
+        when(request.getHeader(CORRELATION_ID_HEADER)).thenReturn("   ");
+
+        // Verify that MDC contains a generated UUID during execution
+        doAnswer(invocation -> {
+            assertNotNull(MDC.get(CORRELATION_ID_HEADER));
+            return null;
+        }).when(filterChain).doFilter(request, response);
+
+        // When
+        mdcFilter.doFilter(request, response, filterChain);
+
+        // Then
+        verify(filterChain).doFilter(request, response);
+        assertNull(MDC.get(CORRELATION_ID_HEADER));
+    }
+
+    @Test
+    void shouldCleanupMdc_EvenWhenChainThrowsException() throws ServletException, IOException {
+        // Given
+        String correlationId = "error-id";
+        when(request.getHeader(CORRELATION_ID_HEADER)).thenReturn(correlationId);
+        doThrow(new RuntimeException("Filter failure")).when(filterChain).doFilter(request, response);
+
+        // When & Then
+        assertThrows(RuntimeException.class, () -> mdcFilter.doFilter(request, response, filterChain));
+        
+        // Ensure cleanup happened even after exception
+        assertNull(MDC.get(CORRELATION_ID_HEADER));
     }
 }
-

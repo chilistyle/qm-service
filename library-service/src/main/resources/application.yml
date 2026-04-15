@@ -34,6 +34,9 @@ quarkus:
         eureka-host: ${EUREKA_HOSTNAME}
         eureka-port: ${EUREKA_PORT}
 
+eureka:
+  watchdog:
+    enabled: true
 
 "%docker":
     log:

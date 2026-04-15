@@ -1,53 +1,97 @@
 package qm.service.book.exception;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-/**
- * GlobalExceptionHandlerTest -
- */
-@WebMvcTest(TestController.class)
-@Import(GlobalExceptionHandler.class)
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 class GlobalExceptionHandlerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    private GlobalExceptionHandler handler;
 
-    @Test
-    void handleNotFound_ShouldReturn404() throws Exception {
-        mockMvc.perform(get("/test-errors/not-found"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.errorCode").value("RESOURCE_NOT_FOUND"))
-                .andExpect(jsonPath("$.message").value("Not found"))
-                .andExpect(jsonPath("$.timestamp").exists());
+    @BeforeEach
+    void setUp() {
+        handler = new GlobalExceptionHandler();
     }
 
     @Test
-    void handleConflict_ShouldReturn409() throws Exception {
-        mockMvc.perform(get("/test-errors/conflict"))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("CONFLICT"))
-                .andExpect(jsonPath("$.message").value("Conflict occurred"));
+    void handleConstraintViolation_ShouldReturnBadRequest() {
+        // Given
+        ConstraintViolation<?> violation = mock(ConstraintViolation.class);
+        when(violation.getMessage()).thenReturn("ISBN must not be null");
+        ConstraintViolationException ex = new ConstraintViolationException("Validation failed", Set.of(violation));
+
+        // When
+        ResponseEntity<ErrorResponse> response = handler.handleConstraintViolation(ex);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().errorCode()).isEqualTo("VALIDATION_FAILED");
+        assertThat(response.getBody().message()).isEqualTo("ISBN must not be null");
     }
 
     @Test
-    void handleValidation_ShouldReturn400WithErrors() throws Exception {
-        String invalidJson = "{}";
+    void handleNotFound_ShouldReturnNotFound() {
+        // Given
+        ResourceNotFoundException ex = new ResourceNotFoundException("Book not found");
 
-        mockMvc.perform(post("/test-errors/validate")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(invalidJson))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errorCode").value("VALIDATION_FAILED"))
-                .andExpect(jsonPath("$.errors").isMap())
-                .andExpect(jsonPath("$.timestamp").exists());
+        // When
+        ResponseEntity<ErrorResponse> response = handler.handleNotFound(ex);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().errorCode()).isEqualTo("RESOURCE_NOT_FOUND");
+        assertThat(response.getBody().message()).isEqualTo("Book not found");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void handleValidation_ShouldReturnBadRequestWithFieldErrors() {
+        // Given
+        MethodArgumentNotValidException ex = mock(MethodArgumentNotValidException.class);
+        BindingResult bindingResult = mock(BindingResult.class);
+        FieldError fieldError = new FieldError("book", "title", "Title is required");
+        
+        when(ex.getBindingResult()).thenReturn(bindingResult);
+        when(bindingResult.getFieldErrors()).thenReturn(List.of(fieldError));
+
+        // When
+        ResponseEntity<Map<String, Object>> response = handler.handleValidation(ex);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).containsEntry("errorCode", "VALIDATION_FAILED");
+        Map<String, String> errors = (Map<String, String>) response.getBody().get("errors");
+        assertThat(response.getBody()).containsKey("timestamp");
+        assertThat(errors).containsEntry("title", "Title is required");
+    }
+
+    @Test
+    void handleConflict_ShouldReturnConflict() {
+        // Given
+        IllegalArgumentException ex = new IllegalArgumentException("Invalid state");
+
+        // When
+        ResponseEntity<ErrorResponse> response = handler.handleConflict(ex);
+
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(response.getBody().errorCode()).isEqualTo("CONFLICT");
     }
 }
-

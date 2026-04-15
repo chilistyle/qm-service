@@ -223,6 +223,24 @@ Lightweight and scalable microservice for managing user engagement and social in
 - Dynamic routing in API Gateway
 - Supports horizontal scaling of services
 
+### ☁️ Cloud Deployment
+- Terraform-based EC2 provisioning with automated security group and networking setup.
+- Cloud-init bootstrap installs Docker CE, Buildx, and Docker Compose plugin on instance startup.
+- `user_data_replace_on_change` enabled to ensure bootstrap updates are re-applied on infrastructure changes.
+- Public endpoint outputs (IP/DNS) for faster post-deploy validation and smoke checks.
+
+### 🌐 Edge Routing Hardening
+- Docker DNS resolver support in Nginx (`127.0.0.11`) for resilient upstream resolution after restarts.
+- Correct path forwarding for Keycloak admin endpoints (`/auth/admin/...`) through edge proxy.
+- `/api` prefix rewrite before forwarding to API Gateway to preserve expected internal route matching.
+- Forwarded host headers aligned for modern Next.js/Auth.js server-side origin validation.
+
+### 🛠️ Operations & Troubleshooting
+- IMDSv2-aware metadata resolution for reliable public DNS/IP detection on AWS.
+- Safe `.env` generation logic with fallback behavior when public DNS is temporarily unavailable.
+- Cloud-init diagnostics and container health workflow using logs + `docker compose ps` checks.
+- Containerized Keycloak administration via `kcadm.sh` for `rootUrl`, `redirectUris`, and `webOrigins` updates.
+
 ---
 
 ## 🏗️ Tech Stack

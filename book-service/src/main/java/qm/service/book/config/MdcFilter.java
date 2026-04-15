@@ -7,6 +7,7 @@ import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Component
 @Slf4j
@@ -18,7 +19,12 @@ public class MdcFilter implements Filter {
             throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         String correlationId = req.getHeader(CORRELATION_ID_HEADER);
-        log.debug("correlationId={}", correlationId);
+
+        if (correlationId == null || correlationId.trim().isEmpty()) {
+            correlationId = UUID.randomUUID().toString();
+            log.debug("Generated new correlationId={}", correlationId);
+        }
+
         try (MDC.MDCCloseable ignored = MDC.putCloseable(CORRELATION_ID_HEADER, correlationId)) {
             chain.doFilter(request, response);
         }

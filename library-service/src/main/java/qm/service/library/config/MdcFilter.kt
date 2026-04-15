@@ -21,8 +21,12 @@ class MdcFilter : ContainerRequestFilter, ContainerResponseFilter {
     }
 
     override fun filter(requestContext: ContainerRequestContext) {
-        val correlationId = requestContext.getHeaderString(CORRELATION_ID_HEADER)
+        val headerId = requestContext.getHeaderString(CORRELATION_ID_HEADER)
+
+        // Використовуємо takeIf + isNotBlank, щоб відсіяти "" та "   "
+        val correlationId = headerId?.takeIf { it.isNotBlank() }
             ?: UUID.randomUUID().toString()
+
         MDC.put(CORRELATION_ID_HEADER, correlationId)
         requestContext.setProperty(CORRELATION_ID_HEADER, correlationId)
     }
@@ -31,10 +35,15 @@ class MdcFilter : ContainerRequestFilter, ContainerResponseFilter {
         requestContext: ContainerRequestContext,
         responseContext: ContainerResponseContext
     ) {
-        val correlationId = requestContext.getProperty(CORRELATION_ID_HEADER) as? String
-        correlationId?.let {
-            responseContext.headers.add(CORRELATION_ID_HEADER, it)
+        try {
+            val correlationId = requestContext.getProperty(CORRELATION_ID_HEADER) as? String
+            correlationId?.let {
+                responseContext.headers.add(CORRELATION_ID_HEADER, it)
+            }
+        } finally {
+            // Видаляємо з MDC завжди, навіть якщо сталася помилка,
+            // щоб не "отруїти" наступний запит у пулі потоків
+            MDC.remove(CORRELATION_ID_HEADER)
         }
-        MDC.remove(CORRELATION_ID_HEADER)
     }
 }

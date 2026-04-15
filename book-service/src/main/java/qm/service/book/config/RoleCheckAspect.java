@@ -30,7 +30,9 @@ public class RoleCheckAspect {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing user roles");
         }
 
-        List<String> userRoles = Arrays.asList(rolesHeader.split(","));
+        List<String> userRoles = Arrays.stream(rolesHeader.split(","))
+                .map(String::trim)
+                .toList();
 
         boolean hasAccess = Arrays.stream(requiresRole.value())
                 .map(role -> "ROLE_" + role)

@@ -1,0 +1,26 @@
+eureka:
+  watchdog:
+    enabled: false
+
+quarkus:
+  application:
+    name: library-service
+  datasource:
+    db-kind: h2
+    username: sa
+    password: sa
+    reactive:
+      url: vertx-reactive:h2:mem:library_test;DB_CLOSE_DELAY=-1
+  stork:
+    library-service:
+      service-registrar:
+        enabled: false 
+        type: static 
+
+  scheduler:
+    enabled: false
+
+  hibernate-orm:
+    schema-management:
+      strategy: drop-and-create
+    dialect: org.hibernate.dialect.H2Dialect

@@ -14,15 +14,16 @@ class Book : PanacheEntityBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null
+
     @Column(nullable = false)
     lateinit var title: String
-    lateinit var author: String
+    var author: String? = null
 
     @Column(unique = true, length = 20)
-    lateinit var isbn: String
+    var isbn: String? = null
 
     @Column(precision = 10, scale = 2)
-    lateinit var price: BigDecimal
+    var price: BigDecimal? = null
 
     companion object : PanacheCompanion<Book>
 
@@ -33,6 +34,6 @@ class Book : PanacheEntityBase {
     }
 
     override fun hashCode(): Int {
-        return javaClass.hashCode()
+        return Book::class.java.hashCode()
     }
 }

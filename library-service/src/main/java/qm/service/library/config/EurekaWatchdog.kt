@@ -14,6 +14,7 @@ import org.jboss.logging.Logger
  * EurekaWatchdog - 
  */
 @ApplicationScoped
+@io.quarkus.arc.properties.IfBuildProperty(name = "eureka.watchdog.enabled", stringValue = "true")
 class EurekaWatchdog(
     private val vertx: Vertx
 ) {
