@@ -1,6 +1,7 @@
 package qm.service.gateway.filter;
 
 import jakarta.ws.rs.core.HttpHeaders;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.annotation.Order;
@@ -17,12 +18,14 @@ import java.util.stream.Collectors;
 /**
  * UserContextFilter -
  */
+@Slf4j
 @Component
-@Order(10) //must be after security filters
+@Order(10) //must be after security filters, even Ordered.HIGHEST_PRECEDENCE after security config
 public class UserContextFilter implements GlobalFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        log.debug("UserContextFilter filter");
         if (exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION) == null) {
             return chain.filter(exchange);
         }
@@ -35,7 +38,8 @@ public class UserContextFilter implements GlobalFilter {
                     String roles = jwtAuth.getAuthorities().stream()
                             .map(GrantedAuthority::getAuthority)
                             .collect(Collectors.joining(","));
-
+                    log.debug("userId=" + userId);
+                    log.debug("roles=" + roles);
                     return exchange.getRequest().mutate()
                             .header("X-User-Id", userId)
                             .header("X-User-Roles", roles)

@@ -21,7 +21,7 @@ describe('Axios Client API Interceptor', () => {
     return (api.interceptors.request as any).handlers[0].fulfilled;
   };
 
-  it('повинен додати Bearer токен, якщо сесія валідна', async () => {
+  it('should add Bearer token if session is valid', async () => {
     const mockToken = 'super-secret-token';
     (getSession as any).mockResolvedValue({
       accessToken: mockToken,
@@ -36,7 +36,7 @@ describe('Axios Client API Interceptor', () => {
     expect(handleSignIn).not.toHaveBeenCalled();
   });
 
-  it('повинен викликати handleSignIn при помилці RefreshAccessTokenError', async () => {
+  it('should call handleSignIn on RefreshAccessTokenError', async () => {
     (getSession as any).mockResolvedValue({
       error: "RefreshAccessTokenError",
     });
@@ -49,7 +49,7 @@ describe('Axios Client API Interceptor', () => {
     expect(handleSignIn).toHaveBeenCalledTimes(1);
   });
 
-  it('не повинен додавати заголовок, якщо сесія відсутня', async () => {
+  it('should not add header if session is missing', async () => {
     (getSession as any).mockResolvedValue(null);
 
     const config = { headers: {} };

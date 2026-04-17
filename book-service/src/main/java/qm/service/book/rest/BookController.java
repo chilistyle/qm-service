@@ -3,6 +3,7 @@ package qm.service.book.rest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -27,6 +28,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/books")
 @RequiredArgsConstructor
 @Validated
+@Slf4j
 public class BookController {
 
     private final BookService bookService;
@@ -35,6 +37,7 @@ public class BookController {
     public ResponseEntity<Page<Book>> getAllBooks(
             @RequestParam(name = "author", required = false) String author,
             @PageableDefault(size = 10, sort = "title") Pageable pageable) {
+        log.debug("REST request to get all Books");
         return ResponseEntity.ok(bookService.findAll(author, pageable));
     }
 
@@ -48,6 +51,7 @@ public class BookController {
     @PostMapping
     @RequiresRole("ADMIN")
     public ResponseEntity<Book> createBook(@Valid @RequestBody BookRequestDTO dto) {
+        log.debug("REST request to save Book : {}", dto);
         Book savedBook = bookService.create(dto);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")

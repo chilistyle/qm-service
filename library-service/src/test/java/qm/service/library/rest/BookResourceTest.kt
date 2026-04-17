@@ -48,6 +48,15 @@ class BookResourceTest {
             Uni.createFrom().item(Unit)
         }
 
+        asserter.execute<Unit> {
+            given()
+                .`when`().get("/api/v1/books/invalid-isbn")
+                .then()
+                .statusCode(404)
+
+            Uni.createFrom().item(Unit)
+        }
+
         asserter.execute<Long> {
             Panache.withTransaction { bookRepository.deleteAll() }
         }
@@ -78,6 +87,99 @@ class BookResourceTest {
             Uni.createFrom().item(Unit)
         }
 
+        asserter.execute<Unit> {
+            given()
+                .queryParam("author", "NonExistentAuthor")
+                .`when`().get("/api/v1/books")
+                .then()
+                .statusCode(200)
+                .body("size()", `is`(0))
+
+            Uni.createFrom().item(Unit)
+        }
+
+        asserter.execute<Unit> {
+            given()
+                .queryParam("author", "Ha@dl#ey!")
+                .`when`().get("/api/v1/books")
+                .then()
+                .statusCode(200)
+
+            Uni.createFrom().item(Unit)
+        }
+
+        asserter.execute<Long> {
+            Panache.withTransaction { bookRepository.deleteAll() }
+        }
+    }
+
+@Test
+@RunOnVertxContext
+fun `should list all books when no author provided`(asserter: UniAsserter) {
+    asserter.execute<Long> {
+        Panache.withTransaction { bookRepository.deleteAll() }
+    }
+
+    val book1 = Book().apply { title = "Book 1"; author = "A"; isbn = "1" }
+    val book2 = Book().apply { title = "Book 2"; author = "B"; isbn = "2" }
+
+    asserter.execute<Void> {
+        Panache.withTransaction { bookRepository.persist(listOf(book1, book2)).replaceWithVoid() }
+    }
+
+    asserter.execute<Unit> {
+        given()
+            .`when`().get("/api/v1/books")
+            .then()
+            .statusCode(200)
+            .body("size()", `is`(2))
+
+        Uni.createFrom().item(Unit)
+    }
+
+    asserter.execute<Long> {
+        Panache.withTransaction { bookRepository.deleteAll() }
+    }
+}
+
+    @Test
+    @RunOnVertxContext
+    fun `should handle empty database`(asserter: UniAsserter) {
+        asserter.execute<Unit> {
+            given()
+                .`when`().get("/api/v1/books")
+                .then()
+                .statusCode(200)
+                .body("size()", `is`(0))
+
+            Uni.createFrom().item(Unit)
+        }
+    }
+
+    @Test
+    @RunOnVertxContext
+    fun `should handle special characters in author name`(asserter: UniAsserter) {
+        val book = Book().apply {
+            title = "Special Characters"
+            author = "John O'Connor"
+            isbn = "555-666"
+        }
+
+        asserter.execute<Book> {
+            Panache.withTransaction { bookRepository.persist(book) }
+        }
+
+        asserter.execute<Unit> {
+            given()
+                .queryParam("author", "John O'Connor")
+                .`when`().get("/api/v1/books")
+                .then()
+                .statusCode(200)
+                .body("size()", `is`(1))
+
+            Uni.createFrom().item(Unit)
+        }
+
         asserter.execute<Long> {
             Panache.withTransaction { bookRepository.deleteAll() }
         }
@@ -85,26 +187,14 @@ class BookResourceTest {
 
     @Test
     @RunOnVertxContext
-    fun `should list all books when no author provided`(asserter: UniAsserter) {
-        val book1 = Book().apply { title = "Book 1"; author = "A"; isbn = "1" }
-        val book2 = Book().apply { title = "Book 2"; author = "B"; isbn = "2" }
-
-        asserter.execute<Void> {
-            Panache.withTransaction { bookRepository.persist(listOf(book1, book2)).replaceWithVoid() }
-        }
-
+    fun `should return null for non-existent isbn`(asserter: UniAsserter) {
         asserter.execute<Unit> {
             given()
-                .`when`().get("/api/v1/books")
+                .`when`().get("/api/v1/books/999-999")
                 .then()
-                .statusCode(200)
-                .body("size()", `is`(2))
+                .statusCode(404)
 
             Uni.createFrom().item(Unit)
-        }
-
-        asserter.execute<Long> {
-            Panache.withTransaction { bookRepository.deleteAll() }
         }
     }
 }

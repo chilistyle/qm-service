@@ -52,6 +52,7 @@ jobs:
       - name: Install & Test Comment Service
         working-directory: ./comment-service
         run: |
+          cp ../.env.example .env
           npm ci
           npm test
           npm run build
@@ -59,6 +60,7 @@ jobs:
       - name: Install & Test Next App
         working-directory: ./next-app
         run: |
+          cp ../.env.example .env
           npm ci
           npm test -- --run
           npm run build

@@ -6,3 +6,4 @@ logging:
     io.lettuce: INFO
     reactor.netty: INFO
     org.springframework.cloud.loadbalancer: DEBUG
+    qm.service.gateway: DEBUG

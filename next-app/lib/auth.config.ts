@@ -4,7 +4,13 @@ import Keycloak from "next-auth/providers/keycloak";
 
 async function refreshAccessToken(token: any) {
     try {
-        const response = await fetch(`${process.env.AUTH_KEYCLOAK_INNER}/protocol/openid-connect/token`, {
+        const tokenUrl = `${process.env.AUTH_KEYCLOAK_INNER}/protocol/openid-connect/token`
+        console.log("[DEBUG] Refresh token - URL:", tokenUrl)
+        console.log("[DEBUG] Refresh token - Client ID:", process.env.AUTH_KEYCLOAK_ID)
+        console.log("[DEBUG] Refresh token - Has secret:", !!process.env.AUTH_KEYCLOAK_SECRET)
+        console.log("[DEBUG] Refresh token - Has refresh token:", !!token.refreshToken)
+
+        const response = await fetch(tokenUrl, {
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: new URLSearchParams({
                 client_id: process.env.AUTH_KEYCLOAK_ID!,
@@ -15,18 +21,27 @@ async function refreshAccessToken(token: any) {
             method: "POST",
         })
 
+        console.log("[DEBUG] Refresh token - Response status:", response.status)
+        
         const tokens = await response.json()
-        if (!response.ok) throw tokens
+        console.log("[DEBUG] Refresh token - Response body:", JSON.stringify(tokens, null, 2))
+        
+        if (!response.ok) {
+            console.error("[ERROR] Refresh token - Error response:", tokens)
+            throw tokens
+        }
 
-        return {
+        const result = {
             ...token,
             accessToken: tokens.access_token,
             expiresAt: Math.floor(Date.now() / 1000 + tokens.expires_in),
             refreshToken: tokens.refresh_token ?? token.refreshToken,
             idToken: tokens.id_token ?? token.idToken, 
         }
+        console.log("[DEBUG] Refresh token - Success, new expiresAt:", result.expiresAt)
+        return result
     } catch (error) {
-        console.error("Error refreshing access token", error)
+        console.error("[ERROR] Refresh token - Catch error:", error)
         return { ...token, error: "RefreshAccessTokenError" }
     }
 }

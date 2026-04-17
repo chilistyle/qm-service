@@ -5,7 +5,7 @@ import { type Session } from "next-auth";
 describe('Auth Config Unit Tests', () => {
     const { callbacks } = authConfig;
 
-    it('повинен коректно мапити дані account у JWT при вході', async () => {
+    it('should correctly map account data to JWT on sign in', async () => {
         const mockToken = { name: 'Test User' };
         const mockAccount = {
             access_token: 'valid_access_token',
@@ -17,7 +17,7 @@ describe('Auth Config Unit Tests', () => {
             token: mockToken,
             account: mockAccount as any,
             user: {} as any
-        });
+        }) as any;
 
         expect(result).toMatchObject({
             accessToken: 'valid_access_token',
@@ -26,7 +26,7 @@ describe('Auth Config Unit Tests', () => {
         });
     });
 
-    it('повинен передавати токен у сесію через session() callback', async () => {
+    it('should pass token to session via session() callback', async () => {
         const mockSession = {
             user: { id: '1', name: 'Test User' },
             expires: new Date().toISOString()

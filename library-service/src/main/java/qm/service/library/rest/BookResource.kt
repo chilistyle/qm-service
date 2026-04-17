@@ -8,6 +8,7 @@ import jakarta.ws.rs.PathParam
 import jakarta.ws.rs.Produces
 import jakarta.ws.rs.QueryParam
 import jakarta.ws.rs.core.MediaType
+import jakarta.ws.rs.NotFoundException
 import qm.service.library.repo.BookRepository
 import qm.service.library.model.Book
 
@@ -19,18 +20,19 @@ import qm.service.library.model.Book
 @Consumes(MediaType.APPLICATION_JSON)
 class BookResource(val bookRepository: BookRepository) {
 
-    @GET
-    @Path("/{isbn}")
-    fun getByIsbn(@PathParam("isbn") isbn: String): Uni<Book?> {
-        return bookRepository.findByIsbn(isbn)
-    }
+@GET
+@Path("/{isbn}")
+fun getByIsbn(@PathParam("isbn") isbn: String): Uni<Book?> {
+    return bookRepository.findByIsbn(isbn)
+        .onItem().ifNull().failWith(NotFoundException())
+}
 
-    @GET
-    fun search(@QueryParam("author") author: String?): Uni<List<Book>> {
-        return if (author != null) {
-            bookRepository.findByAuthor(author)
-        } else {
-            bookRepository.listAll()
-        }
+@GET
+fun search(@QueryParam("author") author: String?): Uni<List<Book>> {
+    return if (author != null) {
+        bookRepository.findByAuthor(author)
+    } else {
+        bookRepository.listAll()
     }
+}
 }

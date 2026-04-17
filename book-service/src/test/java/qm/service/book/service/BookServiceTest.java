@@ -15,6 +15,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -107,4 +112,120 @@ class BookServiceTest {
         assertThat(stats.get("Martin")).isEqualTo(2L);
         assertThat(stats.get("Bloch")).isEqualTo(1L);
     }
+
+    @Test
+    void findAll_WithoutAuthorFilter_ShouldReturnAllBooks() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Book> books = new PageImpl<>(List.of(new Book(), new Book()));
+        when(bookRepository.findAll(pageable)).thenReturn(books);
+
+        Page<Book> result = bookService.findAll(null, pageable);
+
+        assertThat(result).isEqualTo(books);
+    }
+
+    @Test
+    void findAll_WithAuthorFilter_ShouldReturnFilteredBooks() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Book> books = new PageImpl<>(List.of(new Book()));
+        when(bookRepository.findByAuthorContainingIgnoreCase("Martin", pageable)).thenReturn(books);
+
+        Page<Book> result = bookService.findAll("Martin", pageable);
+
+        assertThat(result).isEqualTo(books);
+    }
+
+    @Test
+    void findAll_WithBlankAuthorFilter_ShouldReturnAllBooks() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Book> books = new PageImpl<>(List.of(new Book()));
+        when(bookRepository.findAll(pageable)).thenReturn(books);
+
+        Page<Book> result = bookService.findAll("  ", pageable);
+
+        assertThat(result).isEqualTo(books);
+    }
+
+    @Test
+    void findById_WhenExists_ShouldReturnBook() {
+        Long id = 1L;
+        Book book = new Book();
+        book.setId(id);
+        when(bookRepository.findById(id)).thenReturn(Optional.of(book));
+
+        Optional<Book> result = bookService.findById(id);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo(id);
+    }
+
+    @Test
+    void findById_WhenNotExists_ShouldReturnEmpty() {
+        Long id = 1L;
+        when(bookRepository.findById(id)).thenReturn(Optional.empty());
+
+        Optional<Book> result = bookService.findById(id);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void update_WhenBookExists_ShouldUpdateBook() {
+        Long id = 1L;
+        BookRequestDTO dto = new BookRequestDTO("New Title", "New Author", "123", BigDecimal.TEN);
+        Book existingBook = new Book();
+        existingBook.setId(id);
+        when(bookRepository.findById(id)).thenReturn(Optional.of(existingBook));
+        when(bookRepository.save(any(Book.class))).thenAnswer(i -> i.getArgument(0));
+
+        Book result = bookService.update(id, dto);
+
+        assertThat(result.getTitle()).isEqualTo("New Title");
+        assertThat(result.getAuthor()).isEqualTo("New Author");
+        verify(bookRepository).save(existingBook);
+    }
+
+    @Test
+    void update_WhenBookNotFound_ShouldThrowException() {
+        Long id = 1L;
+        BookRequestDTO dto = new BookRequestDTO("Title", "Author", "123", BigDecimal.TEN);
+        when(bookRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> bookService.update(id, dto))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Book not found with id : '1'");
+    }
+
+    @Test
+    void delete_WhenBookExists_ShouldDeleteBook() {
+        Long id = 1L;
+        when(bookRepository.existsById(id)).thenReturn(true);
+        doNothing().when(bookRepository).deleteById(id);
+
+        bookService.delete(id);
+
+        verify(bookRepository).deleteById(id);
+    }
+
+    @Test
+    void delete_WhenBookNotFound_ShouldThrowException() {
+        Long id = 1L;
+        when(bookRepository.existsById(id)).thenReturn(false);
+
+        assertThatThrownBy(() -> bookService.delete(id))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Book not found with id : '1'");
+    }
+
+    @Test
+    void updatePrice_WhenBookNotFound_ShouldThrowException() {
+        Long id = 1L;
+        BigDecimal newPrice = new BigDecimal("99.99");
+        when(bookRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> bookService.updatePrice(id, newPrice))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Book not found with id : '1'");
+    }
+
 }

@@ -13,7 +13,7 @@ vi.mock("@/components/AuthButton", () => ({
 describe('Header Component', () => {
     const mockSession = { user: { name: 'John Doe' } };
 
-    it('повинен відображати логотип та основні посилання', () => {
+    it('should display the logo and main links', () => {
         render(<Header session={null} />);
 
         expect(screen.getByText(/QM/i)).toBeInTheDocument();
@@ -28,7 +28,7 @@ describe('Header Component', () => {
         expect(historyLinks[0]).toBeInTheDocument();
     });
 
-    it('повинен передавати сесію в AuthButton', () => {
+    it('should pass the session to AuthButton', () => {
         render(<Header session={mockSession} />);
 
         const authButtons = screen.getAllByTestId('auth-button');
@@ -39,13 +39,13 @@ describe('Header Component', () => {
     });
 
     describe('Mobile Menu', () => {
-        it('повинен бути закритим за замовчуванням', () => {
+        it('should be closed by default', () => {
             render(<Header session={null} />);
             const mobileMenu = screen.getByText('History', { selector: '.md\\:hidden .block' }).closest('div.md\\:hidden');
             expect(mobileMenu).toHaveClass('hidden');
         });
 
-        it('повинен відкриватися при кліку на бургер-кнопку', async () => {
+        it('should open when the burger button is clicked', async () => {
             render(<Header session={null} />);
 
             const burgerButton = screen.getByRole('button', { name: /open main menu/i });
@@ -59,7 +59,7 @@ describe('Header Component', () => {
             expect(visibleMobileLink?.closest('div.md\\:hidden')).toHaveClass('block');
         });
 
-        it('повинен закриватися після кліку на посилання в мобільному меню', async () => {
+        it('should close after clicking a link in the mobile menu', async () => {
             render(<Header session={null} />);
 
             const burgerButton = screen.getByRole('button', { name: /open main menu/i });

@@ -42,8 +42,8 @@
 <body>
 
     <div id="cta-overlay">
-        <div class="win-text">ВІТАЄМО!<br>ВАША ЗНИЖКА ГОТОВА</div>
-        <button id="cta-button" onclick="handleCTA()">ЗАБРАТИ</button>
+        <div class="win-text">CONGRATULATIONS!<br>YOUR DISCOUNT IS READY</div>
+        <button id="cta-button" onclick="handleCTA()">GET IT</button>
     </div>
 
     <script>
@@ -54,7 +54,7 @@
                 return;
             }
 
-            // 1. Параметри з NestJS
+            // 1. Parameters from NestJS
             const TARGET_SCORE = <%= targetScore %>;
             const STORE_URL = "<%= storeUrl %>";
             const CORRELATION_ID = "<%= correlationId %>";
@@ -65,7 +65,7 @@
                 getState: () => 'default'
             };
 
-            // 3. Ініціалізація PixiJS v7
+            // 3. PixiJS v7 Initialization
             const app = new PIXI.Application();
             await app.init({ 
                 background: '#1099bb',
@@ -77,7 +77,7 @@
             let score = 0;
             const gifts = [];
 
-            // 4. Стиль тексту (v7 синтаксис)
+            // 4. Text style (v7 syntax)
             const scoreStyle = new PIXI.TextStyle({
                 fill: '#ffffff',
                 fontSize: 32,
@@ -85,14 +85,14 @@
             });
 
             const scoreText = new PIXI.Text({
-                text: `Злови ${TARGET_SCORE}: 0`,
+                text: `Catch ${TARGET_SCORE}: 0`,
                 style: scoreStyle
             });
             scoreText.x = 20;
             scoreText.y = 20;
             app.stage.addChild(scoreText);
 
-            // 5. Функція створення подарунків
+            // 5. Function to create gifts
             function createGift() {
                 const gift = new PIXI.Container();
                 
@@ -108,12 +108,12 @@
                 gift.addChild(box, ribbon);
                 gift.x = Math.random() * (app.screen.width - 60) + 30;
                 gift.y = -100;
-                gift.eventMode = 'static'; // v7 аналог interactive = true
+                gift.eventMode = 'static'; // v7 equivalent of interactive = true
                 gift.cursor = 'pointer';
 
                 gift.on('pointerdown', () => {
                     score++;
-                    scoreText.text = `Злови ${TARGET_SCORE}: ${score}`;
+                    scoreText.text = `Catch ${TARGET_SCORE}: ${score}`;
                     app.stage.removeChild(gift);
                     if (score >= TARGET_SCORE) showEndCard();
                 });
@@ -131,7 +131,7 @@
                 mraid.open(STORE_URL);
             }
 
-            // 6. Ігровий цикл
+            // 6. Game loop
             let spawnTimer = 0;
             app.ticker.add((ticker) => {
                 spawnTimer += ticker.deltaTime;

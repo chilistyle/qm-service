@@ -10,7 +10,7 @@ vi.mock("@/app/actions", () => ({
 
 describe('AuthButton Component', () => {
   
-  it('повинен рендерити кнопку Sign in, якщо сесія відсутня', () => {
+  it('should render Sign in button if session is missing', () => {
     render(<AuthButton session={null} />);
     
     const signInButton = screen.getByText(/sign in/i);
@@ -18,7 +18,7 @@ describe('AuthButton Component', () => {
     expect(screen.queryByText(/sign out/i)).not.toBeInTheDocument();
   });
 
-  it('повинен рендерити кнопку Sign out, якщо користувач авторизований', () => {
+  it('should render Sign out button if the user is authenticated', () => {
     const mockSession = { user: { name: 'John Doe' } };
     render(<AuthButton session={mockSession} />);
     
@@ -27,7 +27,7 @@ describe('AuthButton Component', () => {
     expect(screen.queryByText(/sign in/i)).not.toBeInTheDocument();
   });
 
-  it('повинен викликати getLogoutUrl при натисканні на Sign out', async () => {
+  it('should call getLogoutUrl when Sign out is clicked', async () => {
     const mockSession = { user: { name: 'John Doe' } };
     render(<AuthButton session={mockSession} />);
     

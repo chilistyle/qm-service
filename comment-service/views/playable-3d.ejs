@@ -39,30 +39,29 @@
 <body>
 
     <div id="ui">
-        <h2 id="msg">ЗНАЙДИ ТА КЛІКНИ НА 3 КУБА</h2>
+        <h2 id="msg">FIND AND CLICK ON 3 CUBES</h2>
     </div>
-    <button id="cta-btn" onclick="handleCTA()">ВСТАНОВИТИ ЗАРАЗ</button>
+    <button id="cta-btn" onclick="handleCTA()">INSTALL NOW</button>
 
-    <!-- Використовуємо type="module" для підтримки імпортів -->
     <script type="module">
-        // Імпортуємо Three.js як модуль
+        // Import Three.js as a module
         import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.180.0/three.module.js';
 
-        // Дані з NestJS
+        // Data from NestJS
         const STORE_URL = "<%= storeUrl %>";
         
-        // 1. Сцена та Камера
+        // 1. Scene and Camera
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.z = 8;
 
-        // 2. Рендерер
+        // 2. Renderer
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
         document.body.appendChild(renderer.domElement);
 
-        // 3. Освітлення
+        // 3. Lighting
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         scene.add(ambientLight);
 
@@ -70,7 +69,7 @@
         pointLight.position.set(5, 5, 5);
         scene.add(pointLight);
 
-        // 4. Створення об'єктів
+        // 4. Object Creation
         const cubes = [];
         const geometry = new THREE.BoxGeometry(1, 1, 1);
 
@@ -92,7 +91,7 @@
             cubes.push(cube);
         }
 
-        // 5. Взаємодія (Raycaster)
+        // 5. Interaction (Raycaster)
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
         let clickedCount = 0;
@@ -107,23 +106,23 @@
             if (intersects.length > 0) {
                 const target = intersects[0].object;
                 
-                // Проста анімація зникнення
+                // Simple disappearance animation
                 target.scale.set(0, 0, 0);
                 clickedCount++;
                 
                 if (clickedCount >= 3) {
-                    document.getElementById('msg').innerText = "ЧУДОВО! ТИ ГОТОВИЙ!";
+                    document.getElementById('msg').innerText = "GREAT! YOU ARE READY!";
                     document.getElementById('cta-btn').style.display = 'block';
                 }
             }
         });
 
-        // 6. Глобальна функція для кнопки (бо ми всередині модуля)
+        // 6. Global function for the button (since we are inside a module)
         window.handleCTA = function() {
             window.open(STORE_URL, '_blank');
         };
 
-        // 7. Анімаційний цикл
+        // 7. Animation Loop
         function animate() {
             requestAnimationFrame(animate);
             
@@ -135,7 +134,7 @@
             renderer.render(scene, camera);
         }
 
-        // 8. Адаптивність
+        // 8. Responsiveness
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();

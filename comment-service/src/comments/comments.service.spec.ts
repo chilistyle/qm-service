@@ -14,7 +14,7 @@ describe('CommentsService', () => {
     save: jest.fn(),
   };
 
-  function mockCommentModel(dto: any) {
+  function mockCommentModel(this: any, dto: any) {
     this.data = dto;
     this.save = mockComment.save.mockResolvedValue({ ...dto, _id: '123' });
   }

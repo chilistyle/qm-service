@@ -8,6 +8,7 @@ export default function Header({ session }: { session: any }) {
     const [isOpen, setIsOpen] = useState(false);
 
     const navLinks = [
+        { name: 'Books', href: '/books' },
         { name: 'History', href: '/history' },
         { name: 'Settings', href: '/settings' },
     ];

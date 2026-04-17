@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <title>3D Physics Playable</title>
@@ -17,9 +17,9 @@
 <body>
     <div id="ui">
         <h1>PHYSICS PLAYGROUND</h1>
-        <p>Клікай, щоб збити вежу</p>
+        <p>Click to knock down the tower</p>
     </div>
-    <button id="cta-btn" onclick="window.handleCTA()">ЗАВАНТАЖИТИ</button>
+    <button id="cta-btn" onclick="window.handleCTA()">DOWNLOAD</button>
 
     <script src="https://cdn.babylonjs.com/ammo.js"></script>
 
@@ -31,7 +31,7 @@
         let tmpTrans;
         let shotsFired = 0;
 
-        // Чекаємо ініціалізації Ammo
+        // Wait for Ammo initialization
         window.Ammo().then((AmmoLib) => {
             tmpTrans = new AmmoLib.btTransform();
             init(AmmoLib);
@@ -167,7 +167,7 @@
             
             physicsWorld.stepSimulation(deltaTime, 10);
 
-            // Синхронізація через for...of (без символів порівняння)
+            // Synchronization via for...of (without comparison symbols)
             for (const obj of rigidBodies) {
                 const ms = obj.body.getMotionState();
                 if (ms) {

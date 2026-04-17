@@ -16,7 +16,7 @@ describe("authConfig", () => {
     });
 
     describe("jwt callback", () => {
-        it("повинен ініціалізувати токен при першому вході", async () => {
+        it("should initialize token on first sign in", async () => {
             const token = {} as any;
             const account = {
                 access_token: "abc",
@@ -27,26 +27,26 @@ describe("authConfig", () => {
                 token,
                 account,
                 user: {} as any
-            });
+            }) as any;
 
             expect(result).not.toBeNull();
-            expect((result as any).accessToken).toBe("abc");
+            expect(result.accessToken).toBe("abc");
         });
 
-        it("повинен повернути існуючий токен, якщо він ще валідний", async () => {
+        it("should return existing token if it is still valid", async () => {
             const futureDate = Math.floor(Date.now() / 1000) + 3600;
             const token = {
                 accessToken: "valid-token",
                 expiresAt: futureDate,
             } as JWT;
 
-            const result = await callbacks!.jwt!({ token, user: {} as User });
+            const result = await callbacks!.jwt!({ token, user: {} as User }) as any;
 
             expect(result).toEqual(token);
             expect(global.fetch).not.toHaveBeenCalled();
         });
 
-        it("повинен викликати refreshAccessToken, якщо токен протермінований", async () => {
+        it("should call refreshAccessToken if the token is expired", async () => {
             const pastDate = Math.floor(Date.now() / 1000) - 100;
             const token = {
                 refreshToken: "old-refresh-token",
@@ -72,7 +72,7 @@ describe("authConfig", () => {
             expect(result.error).toBeUndefined();
         });
 
-        it("повинен додати помилку RefreshAccessTokenError, якщо fetch провалився", async () => {
+        it("should add RefreshAccessTokenError error if fetch fails", async () => {
             const token = {
                 refreshToken: "some-token",
                 expiresAt: 0,
@@ -83,14 +83,14 @@ describe("authConfig", () => {
                 json: async () => ({ error: "invalid_grant" }),
             });
 
-            const result = await callbacks!.jwt!({ token, user: {} as User });
+            const result = await callbacks!.jwt!({ token, user: {} as User }) as any;
 
             expect(result.error).toBe("RefreshAccessTokenError");
         });
     });
 
     describe("session callback", () => {
-        it("повинен перенести дані з JWT у об'єкт сесії", async () => {
+        it("should transfer data from JWT to the session object", async () => {
             const mockSession = {
                 user: { name: "Test" },
                 expires: new Date().toISOString()
@@ -107,12 +107,10 @@ describe("authConfig", () => {
                 user: {} as any, 
                 newSession: undefined as any,
                 trigger: "update"
-            });
+            }) as any;
 
-            const finalResult = result as any;
-
-            expect(finalResult).not.toBeNull();
-            expect(finalResult.accessToken).toBe("secret-token");
+            expect(result).not.toBeNull();
+            expect(result.accessToken).toBe("secret-token");
         });
     });
 });

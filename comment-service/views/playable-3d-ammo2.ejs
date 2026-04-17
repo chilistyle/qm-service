@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
@@ -44,9 +44,9 @@
 <body>
     <div id="ui">
         <h1>STRIKE CHALLENGE</h1>
-        <p>Свайпни вгору, щоб кинути кулю!</p>
+        <p>Swipe up to throw the ball!</p>
     </div>
-    <button id="cta-btn" onclick="window.handleCTA()">ГРАТИ ЩЕ</button>
+    <button id="cta-btn" onclick="window.handleCTA()">PLAY AGAIN</button>
 
     <script src="https://cdn.babylonjs.com/ammo.js"></script>
 
@@ -58,7 +58,7 @@
         let ballBody, ballMesh;
         let isLaunched = false;
 
-        // Ініціалізація Ammo
+        // Ammo initialization
         window.Ammo().then((AmmoLib) => {
             tmpTrans = new AmmoLib.btTransform();
             init(AmmoLib);
@@ -77,7 +77,7 @@
 
             animate(Ammo);
 
-            // Обробка кидка (свайп або довгий клік)
+            // Throw handling (swipe or long click)
             window.addEventListener('mousedown', (e) => {
                 if (isLaunched) return;
                 startX = e.clientX;
@@ -85,7 +85,7 @@
                 startTime = Date.now();
             });
 
-            // Фіксація кінця свайпу та запуск
+            // Capture swipe end and launch
             window.addEventListener('mouseup', (e) => {
                 if (isLaunched || startTime === 0) return;
 
@@ -97,28 +97,28 @@
                 const diffY = startY - endY; // Скільки проїхали вгору
                 const diffX = endX - startX; // Відхилення вбік
 
-                // Якщо свайп був достатньо швидким і довгим (вгору)
+                // If the swipe was fast and long enough (upwards)
                 if (diffY > 50 && duration < 500) {
                     isLaunched = true;
 
-                    // Розморожуємо фізику
+                    // Unfreeze physics
                     ballBody.setLinearFactor(new Ammo.btVector3(1, 1, 1));
                     ballBody.setAngularFactor(new Ammo.btVector3(1, 1, 1));
                     ballBody.setActivationState(1);
 
-                    // Розрахунок сили: чим швидший свайп, тим сильніший удар
+                    // Force calculation: the faster the swipe, the stronger the hit
                     const power = Math.min(diffY / duration * 10, 60);
                     const sideSteer = (diffX / window.innerWidth) * 20;
 
                     ballBody.setLinearVelocity(new Ammo.btVector3(sideSteer, 0, -power));
-                    ballBody.setAngularVelocity(new Ammo.btVector3(-power / 2, 0, 0)); // Крутимо вперед
+                    ballBody.setAngularVelocity(new Ammo.btVector3(-power / 2, 0, 0)); // Spin forward
 
                     setTimeout(() => {
                         document.getElementById('cta-btn').style.display = 'block';
                     }, 4000);
                 }
 
-                startTime = 0; // Скидаємо таймер
+                startTime = 0; // Reset timer
             });
 
             window.handleCTA = () => window.location.reload();
@@ -154,7 +154,7 @@
         }
 
         function createAlley(Ammo) {
-            // Доріжка
+            // Lane
             const size = { x: 10, y: 1, z: 65 };
             const mesh = new THREE.Mesh(
                 new THREE.BoxGeometry(size.x, size.y, size.z),
@@ -169,7 +169,7 @@
             transform.setOrigin(new Ammo.btVector3(0, -0.5, -15));
             const colShape = new Ammo.btBoxShape(new Ammo.btVector3(size.x / 2, size.y / 1, size.z / 2));
             const body = new Ammo.btRigidBody(new Ammo.btRigidBodyConstructionInfo(0, new Ammo.btDefaultMotionState(transform), colShape, new Ammo.btVector3(0, 0, 0)));
-            body.setFriction(0.1); // Слизька доріжка
+            body.setFriction(0.1); // Slippery lane
             physicsWorld.addRigidBody(body);
         }
 
@@ -227,8 +227,8 @@
             ballBody = new Ammo.btRigidBody(new Ammo.btRigidBodyConstructionInfo(5, new Ammo.btDefaultMotionState(transform), colShape, localInertia));
             physicsWorld.addRigidBody(ballBody);
             rigidBodies.push({ mesh: ballMesh, body: ballBody });
-            ballBody.setAngularFactor(new Ammo.btVector3(0, 0, 0)); // Заборонити обертання до старту
-            ballBody.setLinearFactor(new Ammo.btVector3(0, 0, 0));  // Заборонити рух до старту
+            ballBody.setAngularFactor(new Ammo.btVector3(0, 0, 0)); // Disable rotation before start
+            ballBody.setLinearFactor(new Ammo.btVector3(0, 0, 0));  // Disable movement before start
         }
 
         function animate(Ammo) {
